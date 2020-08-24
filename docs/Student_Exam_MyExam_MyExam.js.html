@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Student/Exam/MyExam/MyExam.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Student/Exam/MyExam/MyExam.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from 'react';
+import ExamDb from "../../../../../DBManager/db/ExamDb";
+import {
+    Avatar,
+    Card,
+    CardActions,
+    CardContent,
+    CardHeader,
+    CardMedia,
+    Grid,
+    IconButton,
+    Typography
+} from "@material-ui/core";
+import {Link} from "react-router-dom";
+import AssignmentTurnedInIcon from "@material-ui/icons/AssignmentTurnedIn";
+import {makeStyles} from "@material-ui/core/styles";
+import {red} from "@material-ui/core/colors";
+import Aux from "../../../../../hoc/_Aux/_Aux";
+import {SearchBox} from "office-ui-fabric-react/lib/SearchBox";
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        maxWidth: 345,
+    },
+    gridRoot: {
+        flexGrow: 1,
+    },
+    media: {
+        width: '21.5rem', paddingTop: '56.25%',
+        border: 'grey 1px solid'
+    },
+    expand: {
+        transform: 'rotate(0deg)',
+        marginLeft: 'auto',
+        transition: theme.transitions.create('transform', {
+            duration: theme.transitions.duration.shortest,
+        }),
+    },
+    expandOpen: {
+        transform: 'rotate(180deg)',
+    },
+    avatar: {
+        backgroundColor: red[500],
+    },
+}));
+/**
+ * Component for showing exams list.
+ *
+ * @component
+ */
+const MyExam = (props) => {
+    const classes = useStyles();
+    const [myExamList, setMyExamList] = useState([]);
+    const [mainExamList, setMainExamList] = useState([]);
+    const [searchKey, setSearchKey] = useState('');
+
+    /**
+     * Handle search using following params
+     * @param   {string} key  anonymous
+     * @param   {string} val  Search Key
+     */
+    const handleSearch = (key, val) => {
+        const onSearchList = [...myExamList];
+        setSearchKey(val);
+        if (val === '') {
+            setMyExamList(mainExamList);
+        } else {
+            setMyExamList(onSearchList.filter(item => (item.title.toLowerCase().indexOf(val.toLowerCase()) !== -1)));
+        }
+    }
+
+    /**
+     * Init UseEffect for backend call
+     */
+    useEffect(() => {
+        ExamDb.getExamsByUser().then((responseData) => {
+            setMyExamList(responseData.data);
+        }).catch((e) => {
+
+        });
+    }, [])
+
+    return (
+        &lt;Aux>
+            &lt;SearchBox placeholder="Search" className="inputSearch" value={searchKey} onChange={handleSearch}/>
+            &lt;Grid container spacing={3}>
+                {myExamList.map(
+                    item => {
+                        return &lt;div style={{textDecoration: 'none', color: 'white', padding: '5px'}} key={item.exam.id}>
+                            &lt;Grid item xs={12}>
+                                &lt;Card className={classes.root}>
+                                    &lt;CardHeader
+                                        avatar={
+                                            &lt;Avatar aria-label="recipe" className={classes.avatar}
+                                                    src="https://www.vistex.com/wp-content/themes/Vistex-Main-Theme/library/images/SeeWorks-Blue.svg"/>
+                                        }
+                                        action={
+                                            &lt;IconButton aria-label="settings">
+                                                {/*  &lt;MoreVertIcon/>*/}
+                                            &lt;/IconButton>
+                                        }
+                                        title={item.exam.title}
+                                        subheader={(`${new Date(item.exam['createdDate']).toDateString()}`)}
+                                    />
+                                    &lt;Link to={`/question_paper/${item.exam.id}`}>
+                                        &lt;CardMedia
+                                            className={classes.media}
+                                            image={item.exam.imageUrl}
+                                            title="Paella dish"
+                                        />
+                                    &lt;/Link>
+                                    &lt;CardContent>
+                                        &lt;Typography noWrap={true} variant="body2" color="textSecondary"
+                                                    component="p">
+                                            {item.exam.description}
+                                        &lt;/Typography>
+                                    &lt;/CardContent>
+                                    &lt;CardActions disableSpacing>
+                                        &lt;IconButton aria-label="share">
+                                            &lt;AssignmentTurnedInIcon/>
+                                        &lt;/IconButton>
+                                    &lt;/CardActions>
+                                &lt;/Card>
+                            &lt;/Grid>
+                        &lt;/div>
+                    }
+                )}
+            &lt;/Grid>
+        &lt;/Aux>
+    )
+
+};
+
+export default MyExam;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MyExam.html">MyExam</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 14:40:10 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

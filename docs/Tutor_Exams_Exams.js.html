@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Tutor/Exams/Exams.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Tutor/Exams/Exams.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from 'react';
+import PropTypes from 'prop-types';
+import {useHistory} from "react-router";
+import {Link} from "react-router-dom";
+import CreateExam from "../CreateExam/CreateExam";
+import BreadCrumb from "../../../Utils/BreadCrumb";
+import ExamDb from "../../../../DBManager/db/ExamDb";
+import MessageToast from "../../../Utils/MessageToast";
+import {DirectionalHint} from "office-ui-fabric-react";
+import {lighten, makeStyles} from '@material-ui/core/styles';
+import {Navbar, Nav, Form, Container} from "react-bootstrap";
+import {DefaultButton, SearchBox, IconButton, TooltipHost} from '@fluentui/react';
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableHead,
+    TablePagination,
+    TableRow,
+    TableSortLabel,
+    Typography,
+    Paper
+} from '@material-ui/core';
+
+
+const useToolbarStyles = makeStyles((theme) => ({
+    highlight:
+        theme.palette.type === 'light'
+            ? {
+                color: theme.palette.secondary.main,
+                backgroundColor: lighten(theme.palette.secondary.light, 0.85),
+            }
+            : {
+                color: theme.palette.text.primary,
+                backgroundColor: theme.palette.secondary.dark,
+            },
+    title: {
+        flex: '1 1 100%',
+        fontWeight: "bold",
+        color: '#21537c'
+    },
+}));
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: '100%',
+    },
+    paper: {
+        width: '100%',
+        marginBottom: theme.spacing(2),
+    },
+    table: {
+        minWidth: 750,
+    },
+    visuallyHidden: {
+        border: 0,
+        clip: 'rect(0 0 0 0)',
+        height: 1,
+        margin: -1,
+        overflow: 'hidden',
+        padding: 0,
+        position: 'absolute',
+        top: 20,
+        width: 1,
+    },
+}));
+
+const headCells = [
+    {id: 'title', align: 'left', disablePadding: true, label: 'Exams', numeric: false},
+    {id: 'status', align: 'left', disablePadding: true, label: 'Status', numeric: false},
+    {id: 'duration', align: 'left', disablePadding: true, label: 'Duration', numeric: false},
+    {id: 'updatedDate', align: 'left', disablePadding: false, label: 'Update Date', numeric: false},
+    {id: 'actions', align: 'right', disablePadding: false, label: '', numeric: false},
+];
+
+function descendingComparator(a, b, orderBy) {
+    if (b[orderBy] &lt; a[orderBy]) {
+        return -1;
+    }
+    if (b[orderBy] > a[orderBy]) {
+        return 1;
+    }
+    return 0;
+}
+
+function getComparator(order, orderBy) {
+    return order === 'desc'
+        ? (a, b) => descendingComparator(a, b, orderBy)
+        : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function stableSort(array, comparator) {
+    const stabilizedThis = array.map((el, index) => [el, index]);
+    stabilizedThis.sort((a, b) => {
+        const order = comparator(a[0], b[0]);
+        if (order !== 0) return order;
+        return a[1] - b[1];
+    });
+    return stabilizedThis.map((el) => el[0]);
+}
+
+function EnhancedTableHead(props) {
+    const {classes, order, orderBy, onRequestSort} = props;
+    const createSortHandler = (property) => (event) => {
+        onRequestSort(event, property);
+    };
+
+    return (
+        &lt;TableHead>
+            &lt;TableRow>
+                {headCells.map((headCell) => (
+                    &lt;TableCell
+                        key={headCell.id}
+                        align={headCell.align}
+                        sortDirection={false}
+                    >
+                        &lt;TableSortLabel
+                            active={orderBy === headCell.id}
+                            direction={orderBy === headCell.id ? order : 'asc'}
+                            onClick={createSortHandler(headCell.id)}
+                        >
+                            {headCell.label}
+                            {orderBy === headCell.id ? (
+                                &lt;span className={classes.visuallyHidden}>
+                                         {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                                &lt;/span>
+                            ) : null}
+                        &lt;/TableSortLabel>
+                    &lt;/TableCell>
+                ))}
+            &lt;/TableRow>
+        &lt;/TableHead>
+    );
+}
+
+EnhancedTableHead.propTypes = {
+    classes: PropTypes.object.isRequired,
+    onRequestSort: PropTypes.func.isRequired,
+    order: PropTypes.oneOf(['asc', 'desc']).isRequired,
+    orderBy: PropTypes.string.isRequired
+};
+
+/**
+ * Component for Enhanced table to show exams list
+ *
+ * @component
+ */
+
+const EnhancedTable = React.memo(() => {
+    const classes = useStyles();
+    const [order, setOrder] = React.useState('desc');
+    const [orderBy, setOrderBy] = React.useState('title');
+    const [page, setPage] = React.useState(0);
+    const [dense] = React.useState(true);
+    const [rowsPerPage, setRowsPerPage] = React.useState(10);
+    const [examRows, setExamRows] = useState([]);
+    const [realExamRows, setRealExamRows] = useState([]);
+    const classesToolbar = useToolbarStyles();
+    const [searchEntered, setSearchEntered] = useState('');
+    const [dialogOpen, setDialogOpen] = useState(false);
+
+    /**
+     * Handle search using following params
+     * @param   {string} event  sort src
+     * @param   {string} property  sort key
+     */
+    const handleRequestSort = (event, property) => {
+        const isAsc = orderBy === property &amp;&amp; order === 'asc';
+        setOrder(isAsc ? 'desc' : 'asc');
+        setOrderBy(property);
+    };
+
+    const handleChangePage = (event, newPage) => {
+        setPage(newPage);
+    };
+
+    /**
+     * Handle Change Rows Per Page
+     * @param   {string} event pagination src
+     */
+    const handleChangeRowsPerPage = (event) => {
+        setRowsPerPage(parseInt(event.target.value, 10));
+        setPage(0);
+    };
+
+    /**
+     * Method to get exams list
+     */
+    const handleGetExam = () => {
+        ExamDb.getExams().then(response => {
+            setExamRows(response.data);
+            setRealExamRows(response.data);
+        }).catch(e => {
+            debugger;
+        })
+    }
+
+    const emptyRows = rowsPerPage - Math.min(rowsPerPage, examRows.length - page * rowsPerPage);
+
+    /**
+     * Handle search using following params
+     * @param  {string} newValue  Search key
+     */
+    const performFilter = (newValue => {
+        setSearchEntered(newValue);
+        const oExamRows = (!newValue) ?
+            [...realExamRows] : examRows.filter((row) => {
+                    debugger;
+                    return (row.title.search(newValue) !== -1)
+                }
+            );
+        setExamRows(oExamRows);
+    });
+
+    const history = useHistory();
+    const _onBreadcrumbItemClicked = () => {
+        history.push({
+            pathname: '/tutor_dashboard'
+        });
+    }
+    /**
+     * Navigate to Question Creation Page
+     * @param   {string} sId  First Name of the User
+     */
+    const navToCreateQuestion = (sId) => {
+        history.push({
+            pathname: `/create_question/${sId}`
+        });
+    }
+
+    const items = [
+        {text: 'Dashboard', key: 'Files', onClick: _onBreadcrumbItemClicked, isCurrentItem: true},
+        {text: 'My Exams', key: 'f5', isCurrentItem: true},
+    ];
+    useEffect(() => {
+        handleGetExam();
+    }, []);
+    const [eToast, setEtoast] = useState(false);
+
+    return (
+        &lt;Container>
+            &lt;BreadCrumb items={items}/>
+            &lt;Paper className='justify-content-center' style={{marginTop: '5rem'}}>
+                &lt;Navbar bg="light" expand="lg" style={{backgroundColor: '#dadde0 !important'}}>
+                    &lt;Navbar.Brand href="">
+                        &lt;Typography className={classesToolbar.title} variant="h6" id="tableTitle" component="div">
+                            Exams List
+                        &lt;/Typography>
+                    &lt;/Navbar.Brand>
+                    &lt;Navbar.Toggle aria-controls="basic-navbar-nav"/>
+                    &lt;Navbar.Collapse id="basic-navbar-nav">
+                        &lt;Nav className="mr-auto"/>
+                        &lt;Form inline>
+                            &lt;SearchBox placeholder="Search" className="mr-sm-2" value={searchEntered}
+                                       onSearch={(newValue) => performFilter(newValue)}/>
+                            &lt;DefaultButton text="Create Exam" iconProps={{iconName: 'Add'}} onClick={() => {
+                                setDialogOpen(true);
+                            }}/>
+                            &lt;CreateExam open={dialogOpen} onExamCreated={() => {
+                                setEtoast(true);
+                                handleGetExam();
+                            }} onClose={() => {
+                                debugger;
+                                setDialogOpen(false);
+                            }}/>
+                        &lt;/Form>
+                    &lt;/Navbar.Collapse>
+                &lt;/Navbar>
+                &lt;MessageToast open={eToast} message={'Exam Created'}/>
+                &lt;TableContainer>
+                    &lt;Table
+                        className={classes.table}
+                        aria-labelledby="tableTitle"
+                        size="small"
+                        aria-label="enhanced table"
+                    >
+                        &lt;EnhancedTableHead
+                            classes={classes}
+                            order={order}
+                            orderBy={orderBy}
+                            onRequestSort={handleRequestSort}/>
+                        &lt;TableBody>
+                            {stableSort(examRows, getComparator(order, orderBy))
+                                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                                .map((row, index) => {
+                                    const labelId = `enhanced-table-checkbox-${index}`;
+
+                                    return (
+                                        &lt;TableRow
+                                            hover
+                                            role="checkbox"
+                                            onClick={() => {
+                                                navToCreateQuestion(row.id)
+                                            }}
+                                            className='examListItem'
+                                            style={{cursor: 'pointer'}}
+                                            tabIndex={-1}
+                                            key={row.id}
+                                        >
+                                            &lt;TableCell component="th" id={labelId} align="left">
+                                                {row.title}
+                                            &lt;/TableCell>
+                                            {/*&lt;TableCell align="left">{moment().format('LLLL')}&lt;/TableCell>*/}
+                                            &lt;TableCell
+                                                align="left">{(row.status === 0) ? 'Open' : 'Completed'}&lt;/TableCell>
+                                            &lt;TableCell align="left">{row.duration} Minutes&lt;/TableCell>
+                                            &lt;TableCell
+                                                align="left">{(`${new Date(row['createdDate']).toDateString()}(${new Date(row['createdDate']).toLocaleTimeString()})`)}&lt;/TableCell>
+                                            &lt;TableCell align="right">
+                                                &lt;TooltipHost content="Edit Exam"
+                                                             directionalHint={DirectionalHint.topRightEdge}>
+                                                    &lt;Link to={`/create_question/${row.id}`}>
+                                                        &lt;IconButton iconProps={{iconName: 'CodeEdit'}}
+                                                                    text='Edit Exam'/>
+                                                    &lt;/Link>
+                                                &lt;/TooltipHost>
+                                                &lt;TooltipHost content="Delete Exam"
+                                                             directionalHint={DirectionalHint.topCenter}>
+                                                    &lt;IconButton iconProps={{iconName: 'Delete'}} text='Delete Exam'/>
+                                                &lt;/TooltipHost>
+                                            &lt;/TableCell>
+                                        &lt;/TableRow>
+                                    );
+                                })}
+                            {emptyRows > 0 &amp;&amp; (
+                                &lt;TableRow style={{height: (dense ? 33 : 53) * emptyRows}}>
+                                    &lt;TableCell colSpan={6}/>
+                                &lt;/TableRow>
+                            )}
+                        &lt;/TableBody>
+                    &lt;/Table>
+                &lt;/TableContainer>
+                &lt;TablePagination
+                    style={{backgroundColor: '#dadde0 !important'}}
+                    rowsPerPageOptions={[5, 10, 25]}
+                    component="div"
+                    count={examRows.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onChangePage={handleChangePage}
+                    onChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+            &lt;/Paper>
+        &lt;/Container>
+    );
+});
+
+export default EnhancedTable;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MyExam.html">MyExam</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 14:40:10 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

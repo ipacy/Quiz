@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/Home/Student/Exam/AssignExam/AssingExam.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/Home/Student/Exam/AssignExam/AssingExam.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useState, useEffect} from 'react';
+import {
+    Container
+} from "react-bootstrap";
+import 'office-ui-fabric-react/dist/css/fabric.css';
+import {TextField} from "office-ui-fabric-react";
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '@material-ui/core/DialogTitle';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
+import {useTheme} from '@material-ui/core/styles';
+import {DefaultButton, CommandBarButton} from "@fluentui/react";
+import {useHistory} from 'react-router';
+import {Typography} from "@material-ui/core";
+import ExamDb from "../../../../../DBManager/db/ExamDb";
+import {connect} from "react-redux";
+import moment from "moment";
+
+/**
+ * Component for Enrolling Exam to User
+ *
+ * @component
+ */
+const AssignExam = (props) => {
+    const [title, setTitle] = useState('');
+    const [description, setDescription] = useState('');
+    const [duration, setDuration] = useState(0);
+    const [status] = useState(0); //setStatus
+    const [open, setOpen] = React.useState(false);
+    const theme = useTheme();
+    const history = useHistory();
+    const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
+    const handleEnrollExam = () => {
+        ExamDb.enrollUserExam({
+            "applicationUserId": props.id,
+            "examId": props.examId,
+            "status": 0,
+            "startDate": moment().format(),
+            "endDate": "2020-08-16T19:57:48.914Z",
+            "score": 0
+        }) //"2020-08-16T19:57:48.914Z" +
+            .then(response => {
+                setOpen(false);
+                props.onExamAssigned();
+            }).catch(e => {
+            setOpen(false);
+        })
+
+    }
+
+    useEffect(() => {
+        setOpen(props.open);
+    }, [props.open]);
+
+    return (
+        &lt;Dialog
+            fullWidth={true}
+            fullScreen={fullScreen}
+            open={open}
+            aria-labelledby="responsive-dialog-title"
+        >
+            &lt;DialogTitle id="responsive-dialog-title">{'Enroll Exam'}&lt;/DialogTitle>
+            &lt;DialogContent>
+                &lt;Container>
+                    &lt;Typography>
+                        Would you like to enroll for the following course
+                    &lt;/Typography>
+                &lt;/Container>
+            &lt;/DialogContent>
+            &lt;DialogActions>
+                &lt;DefaultButton text="Yes" iconProps={{iconName: 'Save'}} onClick={handleEnrollExam}/>
+                &lt;DefaultButton text="No" iconProps={{iconName: 'Cancel'}} onClick={props.onClose}/>
+                &lt;CommandBarButton width='5px'/>
+            &lt;/DialogActions>
+        &lt;/Dialog>
+
+    );
+};
+
+const mapStateToProps = state => {
+    return {
+        email: state.auth.email,
+        fullName: state.auth.fullName,
+        userName: state.auth.userName,
+        authenticated: state.auth.authenticated,
+        id: state.auth.id,
+        error: state.auth.error,
+        isAdmin: state.auth.isAdmin,
+    };
+};
+
+
+export default connect(mapStateToProps)(AssignExam);
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="QuestionDbClass.html">QuestionDbClass</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addquestions">add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyexamforusers">Get Questions by exam for users</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 15:18:45 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

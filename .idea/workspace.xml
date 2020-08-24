@@ -1,6 +1,240 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="9770d44d-afff-4477-b3e3-37f12fa416de" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/Dockerfile" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Dockerfile.dev" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/env.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/getHttpsConfig.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/jest/cssTransform.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/jest/fileTransform.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/modules.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/paths.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/pnpTs.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/webpack.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/config/webpackDevServer.config.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/AssignExam.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/CreateQuestion.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/DBManager_db_QuestionDb.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/DashboardUI-handleGetCount.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/DashboardUI.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/EnhancedTable.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Exams.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Student_Exam_AssignExam_AssingExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Student_Exam_MyExam_MyExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Student_Exam_Questions_Questions.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Tutor_CreateQuestion_CreateQuestion.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Tutor_Dashboard_Dashboard.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Home_Tutor_Exams_Exams.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/MessageToast.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/MyExam.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/MyExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/QuestionDbClass.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Questions.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/QuillEditor.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Student_Exam_AssignExam_AssingExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Student_Exam_MyExam_MyExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Tutor_Exams_Exams.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Utils_MessageToast.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/Utils_QuillEditor.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Student_Exam_AssignExam_AssingExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Student_Exam_MyExam_MyExam.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Student_Exam_Questions_Questions.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Tutor_CreateQuestion_CreateQuestion.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Tutor_Dashboard_Dashboard.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Home_Tutor_Exams_Exams.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Utils_MessageToast.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/components_Utils_QuillEditor.js.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Bold-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Bold-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Bold-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-BoldItalic-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-BoldItalic-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-BoldItalic-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Italic-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Italic-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Italic-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Light-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Light-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Light-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-LightItalic-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-LightItalic-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-LightItalic-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Regular-webfont.eot" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Regular-webfont.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/fonts/OpenSans-Regular-webfont.woff" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/global.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/index.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/scripts/linenumber.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/scripts/prettify/Apache-License-2.0.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/scripts/prettify/lang-css.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/scripts/prettify/prettify.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/styles/jsdoc-default.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/styles/prettify-jsdoc.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/docs/styles/prettify-tomorrow.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/jsdoc.conf.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/build.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/start.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/scripts/test.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/DBManager/db/GlobalDb.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Student/Exam/AssignExam/AssingExam.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Student/Exam/MyExam/MyExam.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Student/Exam/Questions/QuestionList.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Student/Exam/Questions/Questions.css" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Student/Exam/Questions/Questions.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Home/Tutor/CreateQuestion/QuestionList.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Navigation/Toolbar/SimpleMenu.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Utils/DraftEditor.js" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Utils/QuillEditor.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/public/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/src/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/logo.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/yarn.lock" beforeDir="false" afterPath="$PROJECT_DIR$/yarn.lock" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="JsFlowSettings">
+    <service-enabled>true</service-enabled>
+    <exe-path />
+    <other-services-enabled>true</other-services-enabled>
+    <auto-save>true</auto-save>
+  </component>
+  <component name="ProjectId" id="1g5vfqleApKvrqzNRu2Bp7DaBHW" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="C:/VistexDevelopment" />
+    <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
+    <property name="ASKED_SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
+    <property name="RunOnceActivity.OpenProjectViewOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/.." />
+    <property name="nodejs_package_manager_path" value="yarn" />
+    <property name="ts.external.directory.path" value="C:\Program Files\JetBrains\WebStorm 2020.1\plugins\JavaScriptLanguage\jsLanguageServicesImpl\external" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems\src\components" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems\src\DBManager\db" />
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems\src\components\Home\Student\Exam\AssignExam" />
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems" />
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems\src" />
+      <recent name="C:\Users\abhinav.parankusham\Desktop\RT\Quiz\vems\public" />
+    </key>
+  </component>
+  <component name="RunManager" selected="JavaScript Debug.index.html">
+    <configuration name="index.html" type="JavascriptDebugType" temporary="true" nameIsGenerated="true" uri="http://localhost:63342/vems/docs/index.html" useBuiltInWebServerPort="true">
+      <method v="2" />
+    </configuration>
+    <configuration name="eject" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="eject" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="start" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="start" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="JavaScript Debug.index.html" />
+        <item itemvalue="npm.start" />
+        <item itemvalue="npm.eject" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="9770d44d-afff-4477-b3e3-37f12fa416de" name="Default Changelist" comment="" />
+      <created>1597417374089</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1597417374089</updated>
+      <workItem from="1597417375364" duration="15070000" />
+      <workItem from="1597467189605" duration="38248000" />
+      <workItem from="1597555646530" duration="33353000" />
+      <workItem from="1597641596838" duration="17227000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="575" y="19" key="CommitChangelistDialog2" timestamp="1597664026941">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="575" y="19" key="CommitChangelistDialog2/0.0.1900.1039@0.0.1900.1039" timestamp="1597664026941" />
+    <state x="730" y="274" key="FileChooserDialogImpl" timestamp="1597671853837">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="730" y="274" key="FileChooserDialogImpl/0.0.1900.1039@0.0.1900.1039" timestamp="1597671853837" />
+    <state width="1879" height="266" key="GridCell.Tab.0.bottom" timestamp="1597672911919">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state width="1879" height="266" key="GridCell.Tab.0.bottom/0.0.1900.1039@0.0.1900.1039" timestamp="1597672911919" />
+    <state width="1879" height="266" key="GridCell.Tab.0.center" timestamp="1597672911919">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state width="1879" height="266" key="GridCell.Tab.0.center/0.0.1900.1039@0.0.1900.1039" timestamp="1597672911919" />
+    <state width="1879" height="266" key="GridCell.Tab.0.left" timestamp="1597672911918">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state width="1879" height="266" key="GridCell.Tab.0.left/0.0.1900.1039@0.0.1900.1039" timestamp="1597672911918" />
+    <state width="1879" height="266" key="GridCell.Tab.0.right" timestamp="1597672911919">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state width="1879" height="266" key="GridCell.Tab.0.right/0.0.1900.1039@0.0.1900.1039" timestamp="1597672911919" />
+    <state x="595" y="134" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1597603797500">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="595" y="134" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.0.1900.1039@0.0.1900.1039" timestamp="1597603797500" />
+    <state x="658" y="205" width="583" height="628" key="find.popup" timestamp="1597658948963">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="658" y="205" width="583" height="628" key="find.popup/0.0.1900.1039@0.0.1900.1039" timestamp="1597658948963" />
+    <state x="606" y="240" width="672" height="677" key="run.anything.popup" timestamp="1597669802560">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="606" y="240" width="672" height="677" key="run.anything.popup/0.0.1900.1039@0.0.1900.1039" timestamp="1597669802560" />
+    <state x="613" y="224" width="672" height="678" key="search.everywhere.popup" timestamp="1597658941628">
+      <screen x="0" y="0" width="1900" height="1039" />
+    </state>
+    <state x="613" y="224" width="672" height="678" key="search.everywhere.popup/0.0.1900.1039@0.0.1900.1039" timestamp="1597658941628" />
   </component>
 </project>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: Home/Tutor/CreateQuestion/CreateQuestion.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: Home/Tutor/CreateQuestion/CreateQuestion.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, {useState, useEffect} from 'react';
+import {Container} from "react-bootstrap";
+import {
+    Dropdown,
+    CommandBar
+} from '@fluentui/react';
+import {
+    Table, TableBody, TableCell, TableContainer,
+    TableRow,
+    Paper,
+    Drawer,
+    IconButton
+} from '@material-ui/core';
+import AddIcon from '@material-ui/icons/Add';
+import 'office-ui-fabric-react/dist/css/fabric.css';
+import {makeStyles} from "@material-ui/core/styles";
+import {Checkbox, TextField} from "office-ui-fabric-react";
+import Aux from '../../../../hoc/_Aux/_Aux';
+import Banner from "../../../Navigation/Toolbar/Banner";
+import QuestionDb from "../../../../DBManager/db/QuestionDb";
+import BreadCrumb from "../../../Utils/BreadCrumb";
+import {useHistory} from "react-router";
+import 'react-quill/dist/quill.snow.css';
+import QuillEditor from "../../../Utils/QuillEditor";
+import QuestionList from "./QuestionList";
+import './CreateQuestion.css';
+
+
+const useStyles = makeStyles((theme) => ({
+    root: {
+        width: '100%',
+    },
+    paper: {
+        width: '100%',
+        marginBottom: theme.spacing(2),
+    },
+    table: {
+        minWidth: 200,
+    },
+    drawerPaper: {
+        width: 350,
+    },
+    content: {
+        flexGrow: 1
+    },
+}));
+
+/**
+ * Component to create question
+ *
+ * @component
+ */
+const CreateQuestion = React.memo(props => {
+        const [questionList, setQuestionList] = useState([]);
+        const classes = useStyles();
+        const history = useHistory();
+        const dropdownStyles = {
+            dropdown: {width: 300},
+        };
+
+
+        const newQuestionItem = {
+            id: '',
+            title: '',
+            entryType: 'newlyAdded',
+            ratePolicy: 0,
+            answerTypes: [
+                {key: '0', text: 'Single Select'},
+                {key: '1', text: 'Multi Select'}],
+            options: [
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0}
+            ],
+            type: '0'
+        };
+        const [questionItem, setQuestionItem] = useState({
+            id: '',
+            title: '',
+            entryType: 'newlyAdded',
+            ratePolicy: 0,
+            answerTypes: [
+                {key: '0', text: 'Single Select'},
+                {key: '1', text: 'Multi Select'}],
+            options: [
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0},
+                {'createdDate': '', 'id': '', 'title': '', imageUrl: '', isCorrect: false, score: 0}
+            ],
+            type: '0'
+        });
+
+        /**
+         * @function
+         */
+        const getQuestionList = () => {
+            const sId = props.match.params.id;
+            QuestionDb.getQuestionsByExam(sId).then(response => {
+                setQuestionList(response.data);
+            });
+        }
+
+        /**
+         * @function
+         */
+        const handleSubmit = () => {
+            const newITem = {...questionItem};
+            let oData = {
+                "title": newITem.title,
+                "type": parseInt(newITem.type),
+                "ratePolicy": parseInt(newITem.ratePolicy)
+            };
+
+            if (questionItem.entryType === "edited") {
+                oData.id = questionItem.id;
+                QuestionDb.updateQuestion(oData)
+                    .then(response => {
+                        debugger;
+                    }).catch(e => {
+                    debugger;
+                });
+            } else {
+                const sId = props.match.params.id;
+                oData.options = questionItem.options;
+                for (let i = 0; i &lt; 4; i++) {
+                    delete oData.options[i].createdDate;
+                    delete oData.options[i].id;
+                }
+                QuestionDb.addQuestion(oData, sId)
+                    .then(response => {
+                        debugger;
+                        getQuestionList();
+                    }).catch(e => {
+                    debugger;
+                });
+            }
+
+        }
+
+        const _items = [
+            {
+                key: 'info',
+                text: 'Info',
+                ariaLabel: 'Info',
+                iconOnly: true,
+                iconProps: {iconName: 'Info'},
+                onClick: () => console.log('Info'),
+            },
+        ];
+        const _farItems = [
+            {
+                key: 'tile',
+                text: 'Submit',
+                className: 'submitButton',
+                ariaLabel: 'Submit',
+                iconOnly: false,
+                iconProps: {iconName: 'Accept'},
+                buttonType: 'primary',
+                onClick: () => handleSubmit(),
+            }
+        ];
+
+
+        const onTypeChange = (newValue, item) => {
+            let nItem = {...questionItem};
+            nItem.type = item.key
+            setQuestionItem(nItem);
+        }
+        const {window} = props;
+        const [mobileOpen, setMobileOpen] = React.useState(false);
+        const container = window !== undefined ? () => window().document.body : undefined;
+
+        /**
+         * @function
+         */
+        const handleDrawerToggle = () => {
+            setMobileOpen(!mobileOpen);
+        };
+
+        /**
+         * API to get Questions by exam
+         * @param   {string} sId  Exam Id
+         */
+        const handleQuestionsByExam = (sId) => {
+            QuestionDb.getQuestionsById(sId).then(response => {
+                let oItem = {...questionItem}
+                oItem.title = response.data.title;
+                oItem.type = response.data.type.toString();
+                oItem.entryType = 'edited'
+                oItem.id = response.data.id;
+                oItem.options = response.data.options;
+                oItem.ratePolicy = response.data.ratePolicy
+                for (let i = 0; i &lt; oItem.options.length; i++) {
+                    oItem.options[i].isCorrect = false;
+                }
+                setQuestionItem(oItem);
+            }).catch(e => {
+                debugger;
+            })
+        }
+
+
+        useEffect(() => {
+            const sId = props.match.params.id;
+            setQuestionItem(newQuestionItem);
+            const handleGetQuestions = () => {
+                QuestionDb.getQuestionsByExam(sId).then(response => {
+                    setQuestionList(response.data);
+                }).catch(e => {
+                    debugger;
+                })
+            }
+            handleGetQuestions();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
+        }, []);
+
+        useEffect(() => {
+            setMobileOpen(true);
+        }, [mobileOpen]);
+        const _onBreadcrumbItemClicked = (value, i) => {
+            history.push({
+                pathname: `/${i.key}`
+            });
+        }
+        const crumbTitle = (!!questionList &amp;&amp; questionList.length > 0) ? questionList[0].exam.title : null;
+        const breadCrumbItems = [
+            {key: 'tutor_dashboard', text: 'Dashboard', onClick: _onBreadcrumbItemClicked, isCurrentItem: false},
+            {key: 'tutor_exams', text: 'My Exams', onClick: _onBreadcrumbItemClicked, isCurrentItem: false},
+            {key: '111', text: `Questions : ${crumbTitle}`, onClick: _onBreadcrumbItemClicked, isCurrentItem: true},
+        ];
+
+
+        const handleAddNewItem = () => {
+            let nItem = {...newQuestionItem};
+            nItem.entryType = 'newlyAdded'
+            setQuestionItem(nItem);
+        }
+
+        const handleCheckChange = (i) => {
+            let abc = {...questionItem};
+            abc.options[i].isCorrect = !abc.options[i].isCorrect;
+            if (questionItem.type === '0') {
+                abc.options.map((item, j) => {
+                    if (i !== j) {
+                        item.isCorrect = false
+                    }
+                    return item.isCorrect;
+                })
+            }
+            setQuestionItem(abc);
+        }
+        const handlePropsChange = (a, b) => {
+            const name = a.target.id;
+            let oItem = {...questionItem}
+            switch (name) {
+                case 'questionId':
+                    oItem['title'] = b;
+                    break;
+                case 'ratePolicyId':
+                    oItem['ratePolicy'] = b;
+                    break
+                default:
+                    console.log();
+                    break;
+            }
+            setQuestionItem(oItem);
+        }
+
+        const handleFieldChange = (value, delta, source, editor, i) => {
+            let oItem = {...questionItem}
+            oItem.options[i.split('optionId')[1]].title = value;
+        }
+
+        return (
+            &lt;Aux>
+                &lt;Drawer
+                    container={container}
+                    variant="permanent"
+                    anchor={'left'}
+                    open={mobileOpen}
+                    onClose={handleDrawerToggle}
+                    classes={{
+                        paper: classes.drawerPaper,
+                    }}
+                    ModalProps={{
+                        keepMounted: true,
+                    }}>
+                    &lt;Banner/>
+                    &lt;IconButton onClick={handleAddNewItem}>
+                        &lt;AddIcon/>
+                    &lt;/IconButton>
+                    &lt;QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
+                &lt;/Drawer>
+                &lt;main className={classes.content}>
+                    &lt;Container>
+                        &lt;BreadCrumb items={breadCrumbItems}/>
+                        &lt;Paper>
+                            &lt;TextField id='questionId' label='Questions' value={questionItem.title}
+                                       onChange={handlePropsChange}/>
+                            &lt;TextField id='ratePolicyId' label='Rate Policy' value={questionItem.ratePolicy}
+                                       onChange={handlePropsChange}/>
+                            &lt;Dropdown
+                                placeholder="Select answer type"
+                                label='Answer Type'
+                                onChange={onTypeChange}
+                                selectedKey={questionItem.type}
+                                options={questionItem.answerTypes}
+                                styles={dropdownStyles}
+                            />
+
+                            &lt;TableContainer>
+                                &lt;Table
+                                    className={classes.table}
+                                    aria-labelledby="tableTitle"
+                                    size='small'
+                                    aria-label="enhanced table">
+                                    &lt;TableBody>
+                                        {questionItem.options.map(
+                                            (item, i) =>
+                                                &lt;TableRow key={i}>
+                                                    &lt;TableCell padding="checkbox">
+                                                        &lt;Checkbox
+                                                            className={questionItem.type === '0' ? 'checkBoxX' : ''}
+                                                            checked={item.isCorrect}
+                                                            onChange={() => handleCheckChange(i)}/>
+                                                    &lt;/TableCell>
+                                                    &lt;TableCell align="left">
+                                                        &lt;QuillEditor id={`optionId${i}`} value={item.title} readOnly={false}
+                                                                     onChange={(value, delta, source, editor) => {
+                                                                         handleFieldChange(value, delta, source, editor, `optionId${i}`)
+                                                                     }}/>
+                                                    &lt;/TableCell>
+                                                &lt;/TableRow>
+                                        )}
+                                    &lt;/TableBody>
+                                &lt;/Table>
+                            &lt;/TableContainer>
+                            &lt;CommandBar
+                                items={_items}
+                                farItems={_farItems}
+                                ariaLabel="Use left and right arrow keys to navigate between commands"
+                            />
+                        &lt;/Paper>
+                    &lt;/Container>
+                &lt;/main>
+            &lt;/Aux>
+
+        )
+            ;
+    }
+);
+
+export default CreateQuestion;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 15:12:32 GMT+0200 (Central European Summer Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>
