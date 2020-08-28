@@ -28,9 +28,9 @@
         <article>
             <pre class="prettyprint source linenums"><code>import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {useHistory} from "react-router";
-import {Link} from "react-router-dom";
+import {useHistory} from "react-router-dom";
 import CreateExam from "../CreateExam/CreateExam";
+import EditExam from "../CreateExam/EditExam";
 import BreadCrumb from "../../../Utils/BreadCrumb";
 import ExamDb from "../../../../DBManager/db/ExamDb";
 import MessageToast from "../../../Utils/MessageToast";
@@ -50,6 +50,7 @@ import {
     Typography,
     Paper
 } from '@material-ui/core';
+import {trackPromise} from 'react-promise-tracker';
 
 
 const useToolbarStyles = makeStyles((theme) => ({
@@ -175,7 +176,7 @@ EnhancedTableHead.propTypes = {
  * @component
  */
 
-const EnhancedTable = React.memo(() => {
+const EnhancedTable = () => {
     const classes = useStyles();
     const [order, setOrder] = React.useState('desc');
     const [orderBy, setOrderBy] = React.useState('title');
@@ -187,6 +188,8 @@ const EnhancedTable = React.memo(() => {
     const classesToolbar = useToolbarStyles();
     const [searchEntered, setSearchEntered] = useState('');
     const [dialogOpen, setDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [editRow, setEditRow] = useState({});
 
     /**
      * Handle search using following params
@@ -216,13 +219,17 @@ const EnhancedTable = React.memo(() => {
      * Method to get exams list
      */
     const handleGetExam = () => {
-        ExamDb.getExams().then(response => {
+        trackPromise(ExamDb.getExams()).then(response => {
             setExamRows(response.data);
             setRealExamRows(response.data);
         }).catch(e => {
             debugger;
         })
     }
+
+ /*   const handleDeleteExam = () => {
+
+    }*/
 
     const emptyRows = rowsPerPage - Math.min(rowsPerPage, examRows.length - page * rowsPerPage);
 
@@ -264,7 +271,7 @@ const EnhancedTable = React.memo(() => {
     useEffect(() => {
         handleGetExam();
     }, []);
-    const [eToast, setEtoast] = useState(false);
+    const [messageToast, setMessageToast] = useState({open: false, title: ''});
 
     return (
         &lt;Container>
@@ -286,16 +293,28 @@ const EnhancedTable = React.memo(() => {
                                 setDialogOpen(true);
                             }}/>
                             &lt;CreateExam open={dialogOpen} onExamCreated={() => {
-                                setEtoast(true);
+                                setMessageToast({open: true, title: 'Exam Created Successfully'});
                                 handleGetExam();
-                            }} onClose={() => {
-                                debugger;
                                 setDialogOpen(false);
+                            }} onClose={() => {
+                                setMessageToast({open: false, title: ''});
+                                setDialogOpen(false);
+                            }}/>
+                            &lt;EditExam open={editDialogOpen} id={editRow.id} title={editRow.title}
+                                      description={editRow.description}
+                                      duration={editRow.duration} imageUrl={editRow.imageUrl} onExamEdited={() => {
+                                handleGetExam();
+                                setEditDialogOpen(false);
+                                setMessageToast({open: true, title: 'Exam Updated Successfully'});
+                            }} onClose={() => {
+                                setEditDialogOpen(false);
                             }}/>
                         &lt;/Form>
                     &lt;/Navbar.Collapse>
                 &lt;/Navbar>
-                &lt;MessageToast open={eToast} message={'Exam Created'}/>
+                &lt;MessageToast open={messageToast.open} message={messageToast.title} onClose={() => {
+                    setMessageToast({open: false, title: ''});
+                }}/>
                 &lt;TableContainer>
                     &lt;Table
                         className={classes.table}
@@ -318,34 +337,41 @@ const EnhancedTable = React.memo(() => {
                                         &lt;TableRow
                                             hover
                                             role="checkbox"
-                                            onClick={() => {
-                                                navToCreateQuestion(row.id)
-                                            }}
                                             className='examListItem'
                                             style={{cursor: 'pointer'}}
                                             tabIndex={-1}
                                             key={row.id}
                                         >
-                                            &lt;TableCell component="th" id={labelId} align="left">
+                                            &lt;TableCell component="th" id={labelId} align="left" onClick={() => {
+                                                navToCreateQuestion(row.id)
+                                            }}>
                                                 {row.title}
                                             &lt;/TableCell>
-                                            {/*&lt;TableCell align="left">{moment().format('LLLL')}&lt;/TableCell>*/}
-                                            &lt;TableCell
-                                                align="left">{(row.status === 0) ? 'Open' : 'Completed'}&lt;/TableCell>
-                                            &lt;TableCell align="left">{row.duration} Minutes&lt;/TableCell>
-                                            &lt;TableCell
-                                                align="left">{(`${new Date(row['createdDate']).toDateString()}(${new Date(row['createdDate']).toLocaleTimeString()})`)}&lt;/TableCell>
-                                            &lt;TableCell align="right">
+                                            &lt;TableCell component="th" onClick={() => {
+                                                navToCreateQuestion(row.id)
+                                            }}
+                                                       align="left">{(row.status === 0) ? 'Open' : 'Completed'}&lt;/TableCell>
+                                            &lt;TableCell align="left" onClick={() => {
+                                                navToCreateQuestion(row.id)
+                                            }}>{row.duration} Minutes&lt;/TableCell>
+                                            &lt;TableCell component="th" onClick={() => {
+                                                navToCreateQuestion(row.id)
+                                            }}
+                                                       align="left">{(`${new Date(row['createdDate']).toDateString()}(${new Date(row['createdDate']).toLocaleTimeString()})`)}&lt;/TableCell>
+                                            &lt;TableCell component="th" align="right">
                                                 &lt;TooltipHost content="Edit Exam"
                                                              directionalHint={DirectionalHint.topRightEdge}>
-                                                    &lt;Link to={`/create_question/${row.id}`}>
-                                                        &lt;IconButton iconProps={{iconName: 'CodeEdit'}}
-                                                                    text='Edit Exam'/>
-                                                    &lt;/Link>
-                                                &lt;/TooltipHost>
-                                                &lt;TooltipHost content="Delete Exam"
-                                                             directionalHint={DirectionalHint.topCenter}>
-                                                    &lt;IconButton iconProps={{iconName: 'Delete'}} text='Delete Exam'/>
+                                                    &lt;IconButton iconProps={{iconName: 'CodeEdit'}}
+                                                                text='Edit Exam' onClick={() => {
+                                                        setEditRow({
+                                                            id: row.id,
+                                                            title: row.title,
+                                                            description: row.description,
+                                                            duration: row.duration,
+                                                            imageUrl: row.imageUrl
+                                                        })
+                                                        setEditDialogOpen(true);
+                                                    }}/>
                                                 &lt;/TooltipHost>
                                             &lt;/TableCell>
                                         &lt;/TableRow>
@@ -372,7 +398,7 @@ const EnhancedTable = React.memo(() => {
             &lt;/Paper>
         &lt;/Container>
     );
-});
+};
 
 export default EnhancedTable;
 </code></pre>
@@ -385,13 +411,13 @@ export default EnhancedTable;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="QuestionDbClass.html">QuestionDbClass</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addquestions">add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyexamforusers">Get Questions by exam for users</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Addquestions">Add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 15:18:45 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 24 2020 10:31:32 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

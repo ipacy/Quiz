@@ -2,12 +2,17 @@ import React, {useEffect, useState} from 'react';
 import {Container} from "react-bootstrap";
 import QuestionDb from "../../../../../DBManager/db/QuestionDb";
 import {
-    Table, TableBody, TableCell, TableContainer,
-    TableRow,
-    Paper,
+    AppBar,
+    Button,
     Drawer,
-    Toolbar
-    , Typography, Button, AppBar
+    Paper,
+    Table,
+    TableBody,
+    TableCell,
+    TableContainer,
+    TableRow,
+    Toolbar,
+    Typography
 } from '@material-ui/core';
 import Banner from "../../../../Navigation/Toolbar/Banner";
 import {makeStyles} from "@material-ui/core/styles";
@@ -17,7 +22,7 @@ import QuestionList from "./QuestionList";
 import {Checkbox, DefaultButton, Label} from "office-ui-fabric-react";
 import QuillEditor from "../../../../Utils/QuillEditor";
 import './Questions.css';
-import {SkipNext, DoneAll, DoneOutline} from "@material-ui/icons";
+import {DoneAll, DoneOutline, SkipNext} from "@material-ui/icons";
 import UserAnswerDb from "../../../../../DBManager/db/UserAnswerDb";
 import MessageToast from "../../../../Utils/MessageToast";
 import UserExamDb from "../../../../../DBManager/db/UserExamDb";
@@ -77,6 +82,43 @@ const useStyles = makeStyles((theme) => ({
  * @component
  */
 const Questions = (props) => {
+ /*   const calculateTimeLeft = () => {
+        let year = new Date().getFullYear();
+        const difference = +new Date(`${year}-10-1`) - +new Date();
+        let timeLeft = {};
+
+        if (difference > 0) {
+            timeLeft = {
+                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                minutes: Math.floor((difference / 1000 / 60) % 60),
+                seconds: Math.floor((difference / 1000) % 60),
+            };
+        }
+        return timeLeft;
+    };
+    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+
+    useEffect(() => {
+        setTimeout(() => {
+            setTimeLeft(calculateTimeLeft());
+        }, 1000);
+    });
+
+    const timerComponents = [];
+
+    Object.keys(timeLeft).forEach((interval) => {
+        if (!timeLeft[interval]) {
+            return;
+        }
+
+        timerComponents.push(
+            <span>
+        {timeLeft[interval]} {interval}{" "}
+      </span>
+        );
+    });*/
+
+
     const [questionList, setQuestionList] = useState([]);
     const [questionItem, setQuestionItem] = useState({});
     const [mobileOpen, setMobileOpen] = useState(false);
@@ -94,7 +136,7 @@ const Questions = (props) => {
         trackPromise(QuestionDb.getQuestionsByExam(sId)).then((responseData) => {
             setQuestionList(responseData.data);
         }).catch((e) => {
-
+            SetMessageToast({open: true, title: e.message});
         });
     }, [sId]);
 
@@ -109,7 +151,7 @@ const Questions = (props) => {
         let newList = {...questionList};
         const eId = props.match.params.eId;
         let options = [];
-        newList[index - 1].question.options.forEach((item) => {
+        questionItem.options.forEach((item) => {
             if (item.isCorrect) {
                 options.push({
                     userExamId: eId,
@@ -126,34 +168,25 @@ const Questions = (props) => {
                         newList[index]['index'] = index + 1;
                         handleOptionsByQuestion(newList[index]);
                     }
-                    //SetMessageToast({open: true, title: 'You have already taken this exam'});
                 }).catch(e => {
                 SetMessageToast({open: true, title: e.message});
             });
         }
     }
 
-/*    const handlePrevious = (index) => {
-        let newList = {...questionList};
-        newList[index - 2]['question']['index'] = index - 1;
-        handleOptionsByQuestion(newList[index - 2]);
-    }*/
-
-
     const handleOptionsByQuestion = (newValue) => {
         const eId = props.match.params.eId;
-        debugger
         trackPromise(QuestionDb.getOptionByQuestion(newValue['questionId'], eId)).then((responseData) => {
             if (responseData.data) {
-                debugger;
                 newValue['options'] = responseData.data;
-                setQuestionItem(newValue);
+                newValue['title'] = newValue.question;
                 setMessageComponent(false);
+                setQuestionItem(newValue);
             } else {
                 setMessageComponent(true);
-                debugger;
             }
         }).catch((e) => {
+            SetMessageToast({open: true, title: e.message});
         });
     }
 
@@ -181,7 +214,7 @@ const Questions = (props) => {
                 });
             }
         }).catch(e => {
-
+            SetMessageToast({open: true, title: e.message});
         });
     }
 
@@ -200,6 +233,49 @@ const Questions = (props) => {
         }
     ) : null;
 
+    const individualItem = !!questionItem.title ? <Container>
+        {/*{timerComponents.length ? timerComponents : <span>Time's up!</span>}*/}
+        <Paper>
+            <div>
+                <Label
+                    className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}</Label>
+                <TableContainer>
+                    <Table
+                        className={classes.table}
+                        aria-labelledby="tableTitle"
+                        size='small'
+                        aria-label="enhanced table">
+                        <TableBody>
+                            {tableItems}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
+                <AppBar position="static" className={classes.bar}>
+                    <Toolbar>
+                        <Button color="inherit" edge="start" endIcon={<DoneAll/>} onClick={handleFinishExam}
+                                className={classes.menuButton}>Finish</Button>
+                        <Typography variant="h6" className={classes.title}/>
+                        {/* {(questionItem.index > 1) ?
+                                                <Button startIcon={<SkipPrevious/>} color="inherit"
+                                                        onClick={(i) => {
+                                                            handlePrevious(questionItem.index)
+                                                        }}>Previous</Button> : null}*/}
+                        {(questionList.length !== questionItem.index) ?
+                            <Button endIcon={<SkipNext/>} color="inherit"
+                                    onClick={(i) => {
+                                        handleNext(questionItem.index)
+                                    }}>Submit & Next</Button> : null}
+                        {(questionList.length === questionItem.index) ?
+                            <Button endIcon={<DoneOutline/>} color="inherit"
+                                    onClick={(i) => {
+                                        handleNext(questionItem.index);
+                                        handleFinishExam();
+                                    }}>Submit</Button> : null}
+                    </Toolbar>
+                </AppBar>
+            </div>
+        </Paper>
+    </Container> : null
     return (
         <div className={classes.root}>
             <MessageToast open={messageToast.open} message={messageToast.title}/>
@@ -222,58 +298,17 @@ const Questions = (props) => {
                         <QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
                     </Drawer>
                 </Hidden>
-                {!messageComponent ? <main className={classes.content}>
-                    {!!questionItem.title ? <Container>
-                        <Paper>
-                            <div>
-                                <Label
-                                    className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}</Label>
-                                <TableContainer>
-                                    <Table
-                                        className={classes.table}
-                                        aria-labelledby="tableTitle"
-                                        size='small'
-                                        aria-label="enhanced table">
-                                        <TableBody>
-                                            {tableItems}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
-                                <AppBar position="static" className={classes.bar}>
-                                    <Toolbar>
-                                        <Button color="inherit" edge="start" endIcon={<DoneAll/>}
-                                                className={classes.menuButton}>Finish</Button>
-                                        <Typography variant="h6" className={classes.title}/>
-                                        {/* {(questionItem.index > 1) ?
-                                                <Button startIcon={<SkipPrevious/>} color="inherit"
-                                                        onClick={(i) => {
-                                                            handlePrevious(questionItem.index)
-                                                        }}>Previous</Button> : null}*/}
-                                        {(questionList.length !== questionItem.index) ?
-                                            <Button endIcon={<SkipNext/>} color="inherit"
-                                                    onClick={(i) => {
-                                                        handleNext(questionItem.index)
-                                                    }}>Submit & Next</Button> : null}
-                                        {(questionList.length === questionItem.index) ?
-                                            <Button endIcon={<DoneOutline/>} color="inherit"
-                                                    onClick={(i) => {
-                                                        handleNext(questionItem.index)
-                                                    }}>Submit</Button> : null}
-                                    </Toolbar>
-                                </AppBar>
-                            </div>
-                        </Paper>
-                    </Container> : null}
-                </main> : <main className={classes.content}>
-                    <div className={classes.rootDummy}>
-                        <Paper elevation={3} style={{textAlign: 'center'}}>
-                            <Label>You cannot answer this question anymore</Label>
-                            <DefaultButton text={'Finish Exam'} onClick={handleFinishExam}/>
-                        </Paper>
-                    </div>
-                </main>}
+                {!messageComponent
+                    ? <main className={classes.content}>{individualItem} </main>
+                    : <main className={classes.content}>
+                        <div className={classes.rootDummy}>
+                            <Paper elevation={3} style={{textAlign: 'center'}}>
+                                <Label>You cannot answer this question anymore</Label>
+                                <DefaultButton text={'Finish Exam'} onClick={handleFinishExam}/>
+                            </Paper>
+                        </div>
+                    </main>}
             </nav>
-
         </div>
     )
 };

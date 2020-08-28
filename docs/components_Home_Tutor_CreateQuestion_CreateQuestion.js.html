@@ -52,7 +52,11 @@ import 'react-quill/dist/quill.snow.css';
 import QuillEditor from "../../../Utils/QuillEditor";
 import QuestionList from "./QuestionList";
 import './CreateQuestion.css';
-
+import MessageToast from "../../../Utils/MessageToast";
+import Button from "@material-ui/core/Button";
+import EditIcon from '@material-ui/icons/Edit';
+import OptionDb from "../../../../DBManager/db/OptionDb";
+import {trackPromise} from 'react-promise-tracker';
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -72,7 +76,6 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1
     },
 }));
-
 /**
  * Component to create question
  *
@@ -80,13 +83,12 @@ const useStyles = makeStyles((theme) => ({
  */
 const CreateQuestion = React.memo(props => {
         const [questionList, setQuestionList] = useState([]);
+        const [messageToast, setMessageToast] = useState({open: false, title: ''});
         const classes = useStyles();
         const history = useHistory();
         const dropdownStyles = {
             dropdown: {width: 300},
         };
-
-
         const newQuestionItem = {
             id: '',
             title: '',
@@ -125,11 +127,14 @@ const CreateQuestion = React.memo(props => {
          */
         const getQuestionList = () => {
             const sId = props.match.params.id;
-            QuestionDb.getQuestionsByExam(sId).then(response => {
+            trackPromise(QuestionDb.getQuestionsByExam(sId)).then(response => {
                 setQuestionList(response.data);
             });
         }
 
+        const handleQuestionDelete = () => {
+            getQuestionList();
+        }
         /**
          * @function
          */
@@ -143,7 +148,7 @@ const CreateQuestion = React.memo(props => {
 
             if (questionItem.entryType === "edited") {
                 oData.id = questionItem.id;
-                QuestionDb.updateQuestion(oData)
+                trackPromise(QuestionDb.updateQuestion(oData))
                     .then(response => {
                         debugger;
                     }).catch(e => {
@@ -156,12 +161,12 @@ const CreateQuestion = React.memo(props => {
                     delete oData.options[i].createdDate;
                     delete oData.options[i].id;
                 }
-                QuestionDb.addQuestion(oData, sId)
+                trackPromise(QuestionDb.addQuestion(oData, sId))
                     .then(response => {
-                        debugger;
+                        setMessageToast({open: true, title: 'Question Added Successfully'});
                         getQuestionList();
                     }).catch(e => {
-                    debugger;
+                    setMessageToast({open: true, title: e.message});
                 });
             }
 
@@ -216,20 +221,18 @@ const CreateQuestion = React.memo(props => {
          * @param   {string} sId  Exam Id
          */
         const handleQuestionsByExam = (sId) => {
-            QuestionDb.getQuestionsById(sId).then(response => {
-                let oItem = {...questionItem}
-                oItem.title = response.data.title;
-                oItem.type = response.data.type.toString();
-                oItem.entryType = 'edited'
-                oItem.id = response.data.id;
-                oItem.options = response.data.options;
-                oItem.ratePolicy = response.data.ratePolicy
-                for (let i = 0; i &lt; oItem.options.length; i++) {
-                    oItem.options[i].isCorrect = false;
-                }
-                setQuestionItem(oItem);
-            }).catch(e => {
-                debugger;
+            trackPromise(QuestionDb.getQuestionsById(sId))
+                .then(response => {
+                    let oItem = {...questionItem}
+                    oItem.title = response.data.title;
+                    oItem.type = response.data.type.toString();
+                    oItem.entryType = 'edited'
+                    oItem.id = response.data.id;
+                    oItem.options = response.data.options;
+                    oItem.ratePolicy = response.data.ratePolicy
+                    setQuestionItem(oItem);
+                }).catch(e => {
+                setMessageToast({open: true, title: e.message});
             })
         }
 
@@ -238,10 +241,11 @@ const CreateQuestion = React.memo(props => {
             const sId = props.match.params.id;
             setQuestionItem(newQuestionItem);
             const handleGetQuestions = () => {
-                QuestionDb.getQuestionsByExam(sId).then(response => {
-                    setQuestionList(response.data);
-                }).catch(e => {
-                    debugger;
+                trackPromise(QuestionDb.getQuestionsByExam(sId))
+                    .then(response => {
+                        setQuestionList(response.data);
+                    }).catch(e => {
+                    setMessageToast({open: true, title: e.message});
                 })
             }
             handleGetQuestions();
@@ -251,12 +255,13 @@ const CreateQuestion = React.memo(props => {
         useEffect(() => {
             setMobileOpen(true);
         }, [mobileOpen]);
+
         const _onBreadcrumbItemClicked = (value, i) => {
             history.push({
                 pathname: `/${i.key}`
             });
         }
-        const crumbTitle = (!!questionList &amp;&amp; questionList.length > 0) ? questionList[0].exam.title : null;
+        const crumbTitle = (!!questionList &amp;&amp; questionList.length > 0) ? questionList[0].exam : null;
         const breadCrumbItems = [
             {key: 'tutor_dashboard', text: 'Dashboard', onClick: _onBreadcrumbItemClicked, isCurrentItem: false},
             {key: 'tutor_exams', text: 'My Exams', onClick: _onBreadcrumbItemClicked, isCurrentItem: false},
@@ -305,8 +310,35 @@ const CreateQuestion = React.memo(props => {
             oItem.options[i.split('optionId')[1]].title = value;
         }
 
+        const handleScoreChange = (event, i) => {
+            let oItem = {...questionItem}
+            oItem.options[i].score = event.target.value;
+            setQuestionItem(oItem);
+        }
+
+        const updateOption = (item, i) => {
+            if (questionItem.entryType === 'edited') {
+                trackPromise(OptionDb.updateOption(item))
+                    .then(response => {
+                        const newItem = {...questionItem};
+                        newItem.options.forEach((item) => {
+                            if (item.id === response.id) {
+                                item = response
+                            }
+                        });
+                        setQuestionItem(newItem);
+                        setMessageToast({open: true, title: 'Score has been Updated'});
+                    }).catch(e => {
+                    setMessageToast({open: true, title: e.message});
+                });//.bind(this);
+            }
+        }
+
         return (
             &lt;Aux>
+                &lt;MessageToast open={messageToast.open} message={messageToast.title} onClose={() => {
+                    setMessageToast({open: false, title: ''});
+                }}/>
                 &lt;Drawer
                     container={container}
                     variant="permanent"
@@ -323,7 +355,8 @@ const CreateQuestion = React.memo(props => {
                     &lt;IconButton onClick={handleAddNewItem}>
                         &lt;AddIcon/>
                     &lt;/IconButton>
-                    &lt;QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
+                    &lt;QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}
+                                  onQuestionDelete={handleQuestionDelete}/>
                 &lt;/Drawer>
                 &lt;main className={classes.content}>
                     &lt;Container>
@@ -364,6 +397,16 @@ const CreateQuestion = React.memo(props => {
                                                                          handleFieldChange(value, delta, source, editor, `optionId${i}`)
                                                                      }}/>
                                                     &lt;/TableCell>
+                                                    &lt;TableCell align="right">
+                                                        &lt;TextField value={item.score} label={'Score'} onChange={(a) => {
+                                                            handleScoreChange(a, i)
+                                                        }}/>
+                                                        {(questionItem.entryType === 'edited') ?
+                                                            &lt;Button variant="contained" endIcon={&lt;EditIcon/>}
+                                                                    onClick={() => {
+                                                                        updateOption(item, i)
+                                                                    }}>Update&lt;/Button> : null}
+                                                    &lt;/TableCell>
                                                 &lt;/TableRow>
                                         )}
                                     &lt;/TableBody>
@@ -395,13 +438,13 @@ export default CreateQuestion;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="QuestionDbClass.html">QuestionDbClass</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addquestions">add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyexamforusers">Get Questions by exam for users</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Addquestions">Add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 15:18:45 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 24 2020 10:31:32 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

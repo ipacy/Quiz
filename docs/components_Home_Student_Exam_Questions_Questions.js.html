@@ -39,19 +39,31 @@ import {
 } from '@material-ui/core';
 import Banner from "../../../../Navigation/Toolbar/Banner";
 import {makeStyles} from "@material-ui/core/styles";
-import {useHistory} from "react-router";
+import {useHistory} from "react-router-dom";
 import Hidden from "@material-ui/core/Hidden";
 import QuestionList from "./QuestionList";
-import BreadCrumb from "../../../../Utils/BreadCrumb";
-import {Checkbox, Label} from "office-ui-fabric-react";
-import {CommandBar} from "@fluentui/react";
+import {Checkbox, DefaultButton, Label} from "office-ui-fabric-react";
 import QuillEditor from "../../../../Utils/QuillEditor";
 import './Questions.css';
-import {SkipPrevious, SkipNext, DoneAll, DoneOutline} from "@material-ui/icons";
+import {SkipNext, DoneAll, DoneOutline} from "@material-ui/icons";
+import UserAnswerDb from "../../../../../DBManager/db/UserAnswerDb";
+import MessageToast from "../../../../Utils/MessageToast";
+import UserExamDb from "../../../../../DBManager/db/UserExamDb";
+import {trackPromise} from 'react-promise-tracker';
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
         width: '100%',
+    },
+    rootDummy: {
+        display: 'flex',
+        marginLeft: '25rem',
+        flexWrap: 'wrap',
+        '&amp; > *': {
+            width: '44rem',
+            height: theme.spacing(16),
+        },
     },
     paper: {
         width: '100%',
@@ -65,7 +77,8 @@ const useStyles = makeStyles((theme) => ({
     },
     content: {
         flexGrow: 1,
-        marginTop: '2rem'
+        marginTop: '2rem',
+        marginLeft: '15rem'
     },
     items: {
         marginBottom: '1px solid transparent'
@@ -95,6 +108,8 @@ const Questions = (props) => {
     const [questionList, setQuestionList] = useState([]);
     const [questionItem, setQuestionItem] = useState({});
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [messageComponent, setMessageComponent] = useState(false);
+    const [messageToast, SetMessageToast] = useState({open: false, title: ''});
     const container = window !== undefined ? () => window().document.body : undefined;
     const classes = useStyles();
     const history = useHistory();
@@ -104,38 +119,70 @@ const Questions = (props) => {
     };
 
     useEffect(() => {
-        QuestionDb.getQuestionsByExamforUser(sId).then((responseData) => {
+        trackPromise(QuestionDb.getQuestionsByExam(sId)).then((responseData) => {
             setQuestionList(responseData.data);
-        }).catch((e) => { });
-    }, []);
+        }).catch((e) => {
+
+        });
+    }, [sId]);
 
     const handleQuestionsByExam = (value, ind) => {
         const newValue = {...value};
-        newValue['question']['index'] = ind + 1;
+        newValue['index'] = ind + 1;
+        newValue['title'] = newValue.question;
         handleOptionsByQuestion(newValue);
     }
 
     const handleNext = (index) => {
         let newList = {...questionList};
-        if (questionList.length === index) {
-        } else {
-            newList[index]['question']['index'] = index + 1;
-            handleOptionsByQuestion(newList[index]);
+        const eId = props.match.params.eId;
+        let options = [];
+        newList[index - 1].question.options.forEach((item) => {
+            if (item.isCorrect) {
+                options.push({
+                    userExamId: eId,
+                    optionId: item.id
+                })
+            }
+        });
+        if (!!options.length) {
+            trackPromise(UserAnswerDb.submitUserAnswer(options)).then(
+                (responseData) => {
+                    debugger;
+                    if (responseData.data &amp;&amp; questionList.length !== index) {
+                        debugger;
+                        newList[index]['index'] = index + 1;
+                        handleOptionsByQuestion(newList[index]);
+                    }
+                    //SetMessageToast({open: true, title: 'You have already taken this exam'});
+                }).catch(e => {
+                SetMessageToast({open: true, title: e.message});
+            });
         }
-
     }
-    const handlePrevious = (index) => {
+
+/*    const handlePrevious = (index) => {
         let newList = {...questionList};
         newList[index - 2]['question']['index'] = index - 1;
         handleOptionsByQuestion(newList[index - 2]);
-    }
+    }*/
 
 
     const handleOptionsByQuestion = (newValue) => {
-        QuestionDb.getOptionByQuestion(newValue['questionId']).then((responseData) => {
-            newValue['question']['options'] = responseData.data;
-            setQuestionItem(newValue['question']);
-        }).catch((e) => {});
+        const eId = props.match.params.eId;
+        debugger
+        trackPromise(QuestionDb.getOptionByQuestion(newValue['questionId'], eId)).then((responseData) => {
+            if (responseData.data) {
+                debugger;
+                newValue['options'] = responseData.data;
+                setQuestionItem(newValue);
+                setMessageComponent(false);
+            } else {
+                setMessageComponent(true);
+                debugger;
+            }
+        }).catch((e) => {
+        });
     }
 
 
@@ -151,6 +198,19 @@ const Questions = (props) => {
             })
         }
         setQuestionItem(abc);
+    }
+
+    const handleFinishExam = () => {
+        const eId = props.match.params.eId;
+        trackPromise(UserExamDb.updateUserExamStatus(eId)).then(responseData => {
+            if (responseData.data) {
+                history.push({
+                    pathname: '/student_exams'
+                });
+            }
+        }).catch(e => {
+
+        });
     }
 
     const tableItems = (!!questionItem &amp;&amp; !!questionItem.options) ? questionItem.options.map(
@@ -170,6 +230,8 @@ const Questions = (props) => {
 
     return (
         &lt;div className={classes.root}>
+            &lt;MessageToast open={messageToast.open} message={messageToast.title}/>
+
             &lt;nav className={classes.drawer} aria-label="mailbox folders">
                 &lt;Hidden xsDown implementation="css">
                     &lt;Drawer
@@ -188,52 +250,58 @@ const Questions = (props) => {
                         &lt;QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
                     &lt;/Drawer>
                 &lt;/Hidden>
-                &lt;main className={classes.content}>
+                {!messageComponent ? &lt;main className={classes.content}>
                     {!!questionItem.title ? &lt;Container>
-                            {/*&lt;BreadCrumb items={breadCrumbItems}/>*/}
-                            &lt;Paper>
-                                &lt;div>
-                                    &lt;Label
-                                        className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}&lt;/Label>
-                                    &lt;TableContainer>
-                                        &lt;Table
-                                            className={classes.table}
-                                            aria-labelledby="tableTitle"
-                                            size='small'
-                                            aria-label="enhanced table">
-                                            &lt;TableBody>
-                                                {tableItems}
-                                            &lt;/TableBody>
-                                        &lt;/Table>
-                                    &lt;/TableContainer>
-                                    &lt;AppBar position="static" className={classes.bar}>
-                                        &lt;Toolbar>
-                                            &lt;Button color="inherit" edge="start" endIcon={&lt;DoneAll/>}
-                                                    className={classes.menuButton}>Finish&lt;/Button>
-                                            &lt;Typography variant="h6" className={classes.title}/>
-                                            {(questionItem.index > 1) ?
+                        &lt;Paper>
+                            &lt;div>
+                                &lt;Label
+                                    className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}&lt;/Label>
+                                &lt;TableContainer>
+                                    &lt;Table
+                                        className={classes.table}
+                                        aria-labelledby="tableTitle"
+                                        size='small'
+                                        aria-label="enhanced table">
+                                        &lt;TableBody>
+                                            {tableItems}
+                                        &lt;/TableBody>
+                                    &lt;/Table>
+                                &lt;/TableContainer>
+                                &lt;AppBar position="static" className={classes.bar}>
+                                    &lt;Toolbar>
+                                        &lt;Button color="inherit" edge="start" endIcon={&lt;DoneAll/>}
+                                                className={classes.menuButton}>Finish&lt;/Button>
+                                        &lt;Typography variant="h6" className={classes.title}/>
+                                        {/* {(questionItem.index > 1) ?
                                                 &lt;Button startIcon={&lt;SkipPrevious/>} color="inherit"
                                                         onClick={(i) => {
                                                             handlePrevious(questionItem.index)
-                                                        }}>Previous&lt;/Button> : null}
-                                            {(questionList.length !== questionItem.index) ?
-                                                &lt;Button endIcon={&lt;SkipNext/>} color="inherit"
-                                                        onClick={(i) => {
-                                                            handleNext(questionItem.index)
-                                                        }}>Submit &amp; Next&lt;/Button> : null}
-                                            {(questionList.length === questionItem.index) ?
-                                                &lt;Button endIcon={&lt;DoneOutline/>} color="inherit"
-                                                        onClick={(i) => {
-                                                            handleNext(questionItem.index)
-                                                        }}>Submit&lt;/Button> : null}
-                                        &lt;/Toolbar>
-                                    &lt;/AppBar>
-                                &lt;/div>
-                            &lt;/Paper>
-                        &lt;/Container>
-                        : null}
-                &lt;/main>
+                                                        }}>Previous&lt;/Button> : null}*/}
+                                        {(questionList.length !== questionItem.index) ?
+                                            &lt;Button endIcon={&lt;SkipNext/>} color="inherit"
+                                                    onClick={(i) => {
+                                                        handleNext(questionItem.index)
+                                                    }}>Submit &amp; Next&lt;/Button> : null}
+                                        {(questionList.length === questionItem.index) ?
+                                            &lt;Button endIcon={&lt;DoneOutline/>} color="inherit"
+                                                    onClick={(i) => {
+                                                        handleNext(questionItem.index)
+                                                    }}>Submit&lt;/Button> : null}
+                                    &lt;/Toolbar>
+                                &lt;/AppBar>
+                            &lt;/div>
+                        &lt;/Paper>
+                    &lt;/Container> : null}
+                &lt;/main> : &lt;main className={classes.content}>
+                    &lt;div className={classes.rootDummy}>
+                        &lt;Paper elevation={3} style={{textAlign: 'center'}}>
+                            &lt;Label>You cannot answer this question anymore&lt;/Label>
+                            &lt;DefaultButton text={'Finish Exam'} onClick={handleFinishExam}/>
+                        &lt;/Paper>
+                    &lt;/div>
+                &lt;/main>}
             &lt;/nav>
+
         &lt;/div>
     )
 };
@@ -251,13 +319,13 @@ export default Questions;
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="QuestionDbClass.html">QuestionDbClass</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#addquestions">add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyexamforusers">Get Questions by exam for users</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="AssignExam.html">AssignExam</a></li><li><a href="CreateQuestion.html">CreateQuestion</a></li><li><a href="DashboardUI.html">DashboardUI</a></li><li><a href="EnhancedTable.html">EnhancedTable</a></li><li><a href="MessageToast.html">MessageToast</a></li><li><a href="MyExam.html">MyExam</a></li><li><a href="Questions.html">Questions</a></li><li><a href="QuillEditor.html">QuillEditor</a></li></ul><h3>Global</h3><ul><li><a href="global.html#Addquestions">Add questions</a></li><li><a href="global.html#GetQuestionsbyexam">Get Questions by exam</a></li><li><a href="global.html#GetQuestionsbyId">Get Questions by Id</a></li><li><a href="global.html#GetQuestionsbyquestionId">Get Questions by question Id</a></li><li><a href="global.html#useEffectforCountAPI">useEffect for Count API</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 17 2020 15:18:45 GMT+0200 (Central European Summer Time)
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 3.6.5</a> on Mon Aug 24 2020 10:31:32 GMT+0200 (Central European Summer Time)
 </footer>
 
 <script> prettyPrint(); </script>

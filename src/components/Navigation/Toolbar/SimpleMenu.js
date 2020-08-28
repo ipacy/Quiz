@@ -10,6 +10,7 @@ import {useHistory} from "react-router-dom";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import Img from '../../../assets/online-learning.png';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
+import DP from '../../../assets/dp.jpg';
 
 const SimpleMenu = (props) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
@@ -39,7 +40,7 @@ const SimpleMenu = (props) => {
                 label={props.name}
                 variant="outlined"
             />*/}
-            <Avatar onMouseOver={handleClick} alt="Remy Sharp" src={Img} style={{marginRight:'1rem'}}/>
+            <Avatar onMouseOver={handleClick} alt="Remy Sharp" src={DP} style={{marginRight:'1rem'}}/>
             <Menu
                 anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                 transformOrigin={{vertical: "bottom", horizontal: "center"}}
