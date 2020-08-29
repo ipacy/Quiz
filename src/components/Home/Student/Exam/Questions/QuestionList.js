@@ -11,7 +11,6 @@ import {
 import PlayArrow from "@material-ui/icons/PlayArrow";
 import {makeStyles} from "@material-ui/core/styles";
 
-
 const useStyles = makeStyles((theme) => ({
     small: {
         width: theme.spacing(3),
@@ -41,10 +40,10 @@ const QuestionList = React.memo(props => {
                                 secondary={null}
                             />
                             <ListItemSecondaryAction>
-                                <IconButton edge="end" aria-label="delete">
-                                    <PlayArrow onClick={() => {
-                                        props.handleQuestionsByExam(value, i)
-                                    }}/>
+                                <IconButton edge="end" aria-label="delete" onClick={() => {
+                                    props.handleQuestionsByExam(value, i)
+                                }}>
+                                    <PlayArrow/>
                                 </IconButton>
                             </ListItemSecondaryAction>
                         </ListItem>) : null

@@ -7,7 +7,7 @@ import 'bootstrap/dist/css/bootstrap.css';
 import {createStore, compose, applyMiddleware, combineReducers} from "redux";
 import {Provider} from "react-redux";
 import thunk from "redux-thunk";
-import AuthReducer from "./store/reducers/AuthReducer";
+import AuthReducer from "./redux-store/reducers/AuthReducer";
 import LoadingIndicator from "./hoc/LoadingIndicator/LoadingIndicator";
 
 const rootReducer = combineReducers({

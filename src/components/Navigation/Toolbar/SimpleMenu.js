@@ -3,12 +3,11 @@ import {
     Menu,
     MenuItem,
     Avatar,
-    Typography,
-    Chip
-} from "@material-ui/core";
+    Typography
+} from "@material-ui/core"; //   Chip
 import {useHistory} from "react-router-dom";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-import Img from '../../../assets/online-learning.png';
+// import Img from '../../../assets/online-learning.png';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import DP from '../../../assets/dp.jpg';
 

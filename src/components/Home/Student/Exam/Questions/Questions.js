@@ -27,6 +27,7 @@ import UserAnswerDb from "../../../../../DBManager/db/UserAnswerDb";
 import MessageToast from "../../../../Utils/MessageToast";
 import UserExamDb from "../../../../../DBManager/db/UserExamDb";
 import {trackPromise} from 'react-promise-tracker';
+import Aux from "../../../../../hoc/_Aux/_Aux";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -82,41 +83,41 @@ const useStyles = makeStyles((theme) => ({
  * @component
  */
 const Questions = (props) => {
- /*   const calculateTimeLeft = () => {
-        let year = new Date().getFullYear();
-        const difference = +new Date(`${year}-10-1`) - +new Date();
-        let timeLeft = {};
+    /*   const calculateTimeLeft = () => {
+           let year = new Date().getFullYear();
+           const difference = +new Date(`${year}-10-1`) - +new Date();
+           let timeLeft = {};
 
-        if (difference > 0) {
-            timeLeft = {
-                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                minutes: Math.floor((difference / 1000 / 60) % 60),
-                seconds: Math.floor((difference / 1000) % 60),
-            };
-        }
-        return timeLeft;
-    };
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+           if (difference > 0) {
+               timeLeft = {
+                   hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+                   minutes: Math.floor((difference / 1000 / 60) % 60),
+                   seconds: Math.floor((difference / 1000) % 60),
+               };
+           }
+           return timeLeft;
+       };
+       const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
-    useEffect(() => {
-        setTimeout(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000);
-    });
+       useEffect(() => {
+           setTimeout(() => {
+               setTimeLeft(calculateTimeLeft());
+           }, 1000);
+       });
 
-    const timerComponents = [];
+       const timerComponents = [];
 
-    Object.keys(timeLeft).forEach((interval) => {
-        if (!timeLeft[interval]) {
-            return;
-        }
+       Object.keys(timeLeft).forEach((interval) => {
+           if (!timeLeft[interval]) {
+               return;
+           }
 
-        timerComponents.push(
-            <span>
-        {timeLeft[interval]} {interval}{" "}
-      </span>
-        );
-    });*/
+           timerComponents.push(
+               <span>
+           {timeLeft[interval]} {interval}{" "}
+         </span>
+           );
+       });*/
 
 
     const [questionList, setQuestionList] = useState([]);
@@ -124,7 +125,7 @@ const Questions = (props) => {
     const [mobileOpen, setMobileOpen] = useState(false);
     const [messageComponent, setMessageComponent] = useState(false);
     const [messageToast, SetMessageToast] = useState({open: false, title: ''});
-    const container = window !== undefined ? () => window().document.body : undefined;
+    // const container = window !== undefined ? () => window().document.body : undefined;
     const classes = useStyles();
     const history = useHistory();
     const sId = props.match.params.id;
@@ -232,9 +233,8 @@ const Questions = (props) => {
             </TableRow>
         }
     ) : null;
-
+//{/*{timerComponents.length ? timerComponents : <span>Time's up!</span>}*/}
     const individualItem = !!questionItem.title ? <Container>
-        {/*{timerComponents.length ? timerComponents : <span>Time's up!</span>}*/}
         <Paper>
             <div>
                 <Label
@@ -277,13 +277,13 @@ const Questions = (props) => {
         </Paper>
     </Container> : null
     return (
-        <div className={classes.root}>
+        <Aux className={classes.root}>
             <MessageToast open={messageToast.open} message={messageToast.title}/>
 
             <nav className={classes.drawer} aria-label="mailbox folders">
                 <Hidden xsDown implementation="css">
                     <Drawer
-                        container={container}
+                        // container={container}
                         variant="permanent"
                         anchor={'left'}
                         open={mobileOpen}
@@ -309,7 +309,7 @@ const Questions = (props) => {
                         </div>
                     </main>}
             </nav>
-        </div>
+        </Aux>
     )
 };
 

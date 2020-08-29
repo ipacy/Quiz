@@ -5,7 +5,7 @@ import {connect} from "react-redux";
 import StudentExams from './components/Home/Student/Exam/Exam';
 import TutorExams from './components/Home/Tutor/Exams/Exams';
 import DashboardUI from "./components/Home/Tutor/Dashboard/Dashboard";
-import * as actions from "./store/actions";
+import * as actions from "./redux-store/actions";
 import AuthLogin from './containers/Authentication/AuthLogin/AuthLogin';
 import CreateQuestion from './components/Home/Tutor/CreateQuestion/CreateQuestion';
 import CreateExam from './components/Home/Tutor/CreateExam/CreateExam';
