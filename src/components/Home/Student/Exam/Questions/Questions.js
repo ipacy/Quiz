@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Container} from "react-bootstrap";
-import QuestionDb from "../../../../../DBManager/db/QuestionDb";
 import {
     AppBar,
     Button,
@@ -23,12 +22,12 @@ import {Checkbox, DefaultButton, Label} from "office-ui-fabric-react";
 import QuillEditor from "../../../../Utils/QuillEditor";
 import './Questions.css';
 import {DoneAll, DoneOutline, SkipNext} from "@material-ui/icons";
-import UserAnswerDb from "../../../../../DBManager/db/UserAnswerDb";
 import MessageToast from "../../../../Utils/MessageToast";
-import UserExamDb from "../../../../../DBManager/db/UserExamDb";
 import {trackPromise} from 'react-promise-tracker';
 import Aux from "../../../../../hoc/_Aux/_Aux";
-
+import {getOptionByQuestion, getQuestionsByExam} from "../../../../../stores/actions/QuestionActions";
+import QuestionStore from "../../../../../stores/store/QuestionStore";
+import {updateUserExamStatus, submitUserAnswer} from "../../../../../stores/actions/UserExamActions";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -84,49 +83,11 @@ const useStyles = makeStyles((theme) => ({
  * @component
  */
 const Questions = (props) => {
-    /*   const calculateTimeLeft = () => {
-           let year = new Date().getFullYear();
-           const difference = +new Date(`${year}-10-1`) - +new Date();
-           let timeLeft = {};
-
-           if (difference > 0) {
-               timeLeft = {
-                   hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                   minutes: Math.floor((difference / 1000 / 60) % 60),
-                   seconds: Math.floor((difference / 1000) % 60),
-               };
-           }
-           return timeLeft;
-       };
-       const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-       useEffect(() => {
-           setTimeout(() => {
-               setTimeLeft(calculateTimeLeft());
-           }, 1000);
-       });
-
-       const timerComponents = [];
-
-       Object.keys(timeLeft).forEach((interval) => {
-           if (!timeLeft[interval]) {
-               return;
-           }
-
-           timerComponents.push(
-               <span>
-           {timeLeft[interval]} {interval}{" "}
-         </span>
-           );
-       });*/
-
-
-    const [questionList, setQuestionList] = useState([]);
+    const [questionList, setQuestionList] = useState(QuestionStore.getQuestionsByExam());
     const [questionItem, setQuestionItem] = useState({});
     const [mobileOpen, setMobileOpen] = useState(false);
     const [messageComponent, setMessageComponent] = useState(false);
     const [messageToast, SetMessageToast] = useState({open: false, title: ''});
-    // const container = window !== undefined ? () => window().document.body : undefined;
     const classes = useStyles();
     const history = useHistory();
     const sId = props.match.params.id;
@@ -134,13 +95,18 @@ const Questions = (props) => {
         setMobileOpen(!mobileOpen);
     };
 
+
+    const onChange = useCallback(() => {
+        const questions = QuestionStore.getQuestionsByExam();
+        setQuestionList(questions.length > 0 ? questions : []);
+    }, []);
+
     useEffect(() => {
-        trackPromise(QuestionDb.getQuestionsByExam(sId)).then((responseData) => {
-            setQuestionList(responseData.data);
-        }).catch((e) => {
-            SetMessageToast({open: true, title: e.message});
-        });
-    }, [sId]);
+        trackPromise(getQuestionsByExam(sId)).then();
+        QuestionStore.addChangeListener(onChange);
+        return () => QuestionStore.removeChangeListener(onChange);
+    }, [onChange, sId]);
+
 
     const handleQuestionsByExam = (value, ind) => {
         const newValue = {...value};
@@ -149,7 +115,7 @@ const Questions = (props) => {
         handleOptionsByQuestion(newValue);
     }
 
-    const handleNext = (index) => {
+    const handleNext = async (index) => {
         let newList = {...questionList};
         const eId = props.match.params.eId;
         let options = [];
@@ -162,9 +128,8 @@ const Questions = (props) => {
             }
         });
         if (!!options.length) {
-            trackPromise(UserAnswerDb.submitUserAnswer(options)).then(
+            await trackPromise(submitUserAnswer(options)).then(
                 (responseData) => {
-                    debugger;
                     if (responseData.data && questionList.length !== index) {
                         debugger;
                         newList[index]['index'] = index + 1;
@@ -178,7 +143,8 @@ const Questions = (props) => {
 
     const handleOptionsByQuestion = (newValue) => {
         const eId = props.match.params.eId;
-        trackPromise(QuestionDb.getOptionByQuestion(newValue['questionId'], eId)).then((responseData) => {
+        //await trackPromise(getOptionByQuestion(newValue['questionId'], eId));
+        trackPromise(getOptionByQuestion(newValue['questionId'], eId)).then((responseData) => {
             if (responseData.data) {
                 newValue['options'] = responseData.data;
                 newValue['title'] = newValue.question;
@@ -207,17 +173,16 @@ const Questions = (props) => {
         setQuestionItem(abc);
     }
 
-    const handleFinishExam = () => {
+    const handleFinishExam = async () => {
         const eId = props.match.params.eId;
-        trackPromise(UserExamDb.updateUserExamStatus(eId)).then(responseData => {
-            if (responseData.data) {
-                history.push({
-                    pathname: '/student_exams'
-                });
-            }
-        }).catch(e => {
-            SetMessageToast({open: true, title: e.message});
-        });
+        const updated = await trackPromise(updateUserExamStatus(eId));
+        if (!!updated.data) {
+            history.push({
+                pathname: '/student_exams'
+            });
+        } else {
+            SetMessageToast({open: true, title: updated.message});
+        }
     }
 
     const tableItems = (!!questionItem && !!questionItem.options) ? questionItem.options.map(

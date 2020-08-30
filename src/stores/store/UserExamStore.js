@@ -40,7 +40,7 @@ class UserExamStore extends EventEmitter {
 
 const userExamStore = new UserExamStore();
 
-AppDispatcher.register((action, a) => {
+AppDispatcher.register((action) => {
     switch (action.actionTypes) {
         case actionTypes.GET_EXAMS_BY_USER:
             _exams = action.exams;
@@ -62,10 +62,9 @@ AppDispatcher.register((action, a) => {
         case actionTypes.GET_USEREXAM_BY_ID:
             _exams = [];
             _examByUser = action.exams;
-            _messages = action.messages;
+            _messages = [];
             userExamStore.emitChange();
             break;
-        // eslint-disable-next-line no-fallthrough
         default:
             break;
     }

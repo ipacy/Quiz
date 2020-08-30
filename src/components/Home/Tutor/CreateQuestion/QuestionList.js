@@ -10,21 +10,12 @@ import {
 } from "@material-ui/core";
 import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import DeleteIcon from "@material-ui/icons/Delete";
-import QuestionDb from "../../../../DBManager/db/QuestionDb";
 import MessageToast from "../../../Utils/MessageToast";
 import Aux from "../../../../hoc/_Aux/_Aux";
 import {trackPromise} from 'react-promise-tracker';
 
 const QuestionList = React.memo(props => {
     const [messageToast, setMessageToast] = useState({open: false, title: ''});
-    const handleDelete = (questionId) => {
-        trackPromise(QuestionDb.deleteQuestion(questionId)).then(responseData => {
-            setMessageToast({open: true, title: responseData.messages[0].text});
-            props.onQuestionDelete();
-        }).catch(e => {
-            setMessageToast({open: true, title: e.message});
-        });
-    }
 
     return (
         <Aux>
@@ -48,7 +39,7 @@ const QuestionList = React.memo(props => {
                                 />
                                 <ListItemSecondaryAction>
                                     <IconButton edge="end" aria-label="delete" onClick={() => {
-                                        handleDelete(value.questionId)
+                                        props.handleDelete(value.questionId)
                                     }}>
                                         <DeleteIcon/>
                                     </IconButton>

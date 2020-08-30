@@ -1,4 +1,4 @@
-class DbManagerClass {
+class APIManagerClass {
     callServer = (method, path, payload, async) => {
         return new Promise(function (fnResolve, fnReject) {
 
@@ -22,10 +22,6 @@ class DbManagerClass {
             if (method !== "GET" && method !== "DELETE") {
                 fetchData.body = JSON.stringify(payload);
             }
-            // debugger;
-            // if (method === "DELETE") {
-            //     fetchData.body = payload.toString();
-            // }
 
             if (!!localStorage.getItem('token')) {
                 fetchData.headers = {
@@ -50,5 +46,5 @@ class DbManagerClass {
     };
 }
 
-const DbManager = new DbManagerClass();
-export default DbManager;
+const APIManager = new APIManagerClass();
+export default APIManager;
