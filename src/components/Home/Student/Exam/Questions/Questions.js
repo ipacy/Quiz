@@ -65,7 +65,8 @@ const useStyles = makeStyles((theme) => ({
         marginLeft: '4rem',
         marginBottom: '2rem',
         fontWeight: 'bold'
-    }, menuButton: {
+    },
+    menuButton: {
         marginRight: theme.spacing(2),
     },
     title: {

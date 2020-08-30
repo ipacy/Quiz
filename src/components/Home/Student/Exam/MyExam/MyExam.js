@@ -1,5 +1,4 @@
-import React, {useEffect, useState} from 'react';
-import ExamDb from "../../../../../DBManager/db/ExamDb";
+import React, {useCallback, useEffect, useState} from 'react';
 import {
     Avatar,
     Card,
@@ -18,11 +17,11 @@ import {makeStyles} from "@material-ui/core/styles";
 import {red} from "@material-ui/core/colors";
 import Aux from "../../../../../hoc/_Aux/_Aux";
 import {SearchBox} from "office-ui-fabric-react/lib/SearchBox";
-import UserExamDb from "../../../../../DBManager/db/UserExamDb";
 import MessageToast from "../../../../Utils/MessageToast";
 import {trackPromise} from 'react-promise-tracker';
 import Vlogo from '../../../../../assets/v.png';
-
+import {deleteUserExam, getExamsByUser, getUserExamById} from "../../../../../stores/actions/UserExamActions";
+import UserExamStore from "../../../../../stores/store/UserExamStore";
 
 const useStyles = makeStyles((theme) => ({
     root: {
@@ -57,10 +56,36 @@ const useStyles = makeStyles((theme) => ({
 const MyExam = React.memo(() => {
     const history = useHistory();
     const classes = useStyles();
-    const [myExamList, setMyExamList] = useState([]);
-    const [mainExamList] = useState([]); //setMainExamList
+    const [myExamList, setMyExamList] = useState(UserExamStore.getExamsByUser());
+    const [mainExamList, setMainExamList] = useState(UserExamStore.getExamsByUser());
     const [searchKey, setSearchKey] = useState('');
     const [messageToast, setMessageToast] = useState({open: false, title: ''});
+    const onChange = useCallback(() => {
+        const examsByUser = UserExamStore.getExamsByUser();
+        if (examsByUser.length > 0) {
+            setMyExamList(examsByUser);
+            setMainExamList(examsByUser);
+        }
+        const userExamById = UserExamStore.getUserExamById();
+        if (!!userExamById) {
+            if(!!userExamById.status){
+                setMessageToast({open: true, title: 'You have already taken this exam'});
+            }else{
+                history.push({
+                    pathname: `/question_paper/${userExamById.examId}/${userExamById.id}`
+                });
+            }
+        }
+
+    },[history]);
+
+    useEffect(() => {
+        trackPromise(getExamsByUser()).then();
+        UserExamStore.addChangeListener(onChange);
+        return () => UserExamStore.removeChangeListener(onChange);
+    }, [onChange]);
+
+
 
     /**
      * Handle search using following params
@@ -76,46 +101,10 @@ const MyExam = React.memo(() => {
             setMyExamList(onSearchList.filter(item => (item.title.toLowerCase().indexOf(val.toLowerCase()) !== -1)));
         }
     }
-    const handleLeaveExam = (id, examId) => {
-        trackPromise(UserExamDb.deleteUserExam(id, examId)).then(
-            () => {
-                getMyExamList();
-                setMessageToast({open: true, title: 'You left the course'});
-            }).catch(e => {
-            setMessageToast({open: true, title: e.message});
-        });
+    const handleLeaveExam = async (id, examId) => {
+        await trackPromise(deleteUserExam(id, examId));
+        setMessageToast({open: true, title: 'You left the course'});
     }
-
-    const navToMyExam = (id, examId) => {
-        trackPromise(UserExamDb.getUserExamById(id, examId)).then(
-            responseData => {
-                if (responseData.data.status === 1) {
-                    setMessageToast({open: true, title: 'You have already taken this exam'});
-                } else {
-                    history.push({
-                        pathname: `/question_paper/${responseData.data.examId}/${id}`
-                    });
-                }
-            }).catch(e => {
-            setMessageToast({open: true, title: e.message});
-        });
-    }
-
-    const getMyExamList = () => {
-        trackPromise(ExamDb.getExamsByUser()).then((responseData) => {
-            setMyExamList(responseData.data);
-        }).catch((e) => {
-            setMessageToast({open: true, title: e.message});
-        });
-    }
-
-
-    /**
-     * Init UseEffect for backend call
-     */
-    useEffect(() => {
-        getMyExamList();
-    }, [])
 
     return (
         <Aux>
@@ -136,15 +125,15 @@ const MyExam = React.memo(() => {
                                         }
                                         action={
                                             <IconButton aria-label="settings">
-                                                {item.score > 0 ? `Score:${item.score}`: 'Open'}
+                                                {item.score > 0 ? `Score:${item.score}` : 'Open'}
                                             </IconButton>
                                         }
                                         title={item.exam.title}
                                         subheader={(`${new Date(item.exam['createdDate']).toDateString()}`)}
                                     />
 
-                                    <CardMedia onClick={() => {
-                                        navToMyExam(item.id, item.exam.id)
+                                    <CardMedia onClick={async () => {
+                                        await trackPromise(getUserExamById(item.id, item.exam.id))
                                     }}
                                                className={classes.media}
                                                image={item.exam.imageUrl}

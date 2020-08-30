@@ -1,7 +1,5 @@
-import React, {useEffect} from 'react';
-import {
-    Container
-} from "react-bootstrap";
+import React, {useCallback, useEffect} from 'react';
+import {Container} from "react-bootstrap";
 import 'office-ui-fabric-react/dist/css/fabric.css';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
@@ -9,12 +7,13 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {useTheme} from '@material-ui/core/styles';
-import {DefaultButton, CommandBarButton} from "@fluentui/react";
+import {CommandBarButton, DefaultButton} from "@fluentui/react";
 import {Typography} from "@material-ui/core";
 import {connect} from "react-redux";
 import moment from "moment";
-import UserExamDb from "../../../../../DBManager/db/UserExamDb";
-import {trackPromise} from 'react-promise-tracker';
+import {enrollUserExam} from "../../../../../stores/actions/UserExamActions";
+import UserExamsStore from "../../../../../stores/store/UserExamStore";
+import UserExamStore from "../../../../../stores/store/UserExamStore";
 
 /**
  * Component for Enrolling Exam to User
@@ -22,23 +21,35 @@ import {trackPromise} from 'react-promise-tracker';
  * @component
  */
 const AssignExam = (props) => {
+
+    const onChange = useCallback(() => {
+        const enrolled = UserExamStore.getEnrolled();
+        const messages = UserExamStore.getMessages();
+        if (!!enrolled) {
+            setOpen(false);
+        }
+        if (messages.length > 0) {
+            props.onExamAssigned(messages[0].text);
+        }
+    }, [props]);
+
+    useEffect(() => {
+        UserExamsStore.addChangeListener(onChange);
+        return () => UserExamsStore.removeChangeListener(onChange);
+    }, [onChange]);
+
+
     const [open, setOpen] = React.useState(false);
     const theme = useTheme();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
-    const handleEnrollExam = () => {
-        trackPromise(UserExamDb.enrollUserExam({
+    const handleEnrollExam = async () => {
+        await enrollUserExam({
             "applicationUserId": props.id,
             "examId": props.examId,
             "status": 0,
             "startDate": moment().format(),
             "endDate": "2020-08-16T19:57:48.914Z",
             "score": 0
-        }))
-            .then(response => {
-                setOpen(false);
-                props.onExamAssigned(response.messages[0].text);
-            }).catch(e => {
-            setOpen(false);
         });
     }
 

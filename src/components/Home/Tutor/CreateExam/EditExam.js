@@ -1,7 +1,5 @@
-import React, {useState, useEffect} from 'react';
-import {
-    Container
-} from "react-bootstrap";
+import React, {useEffect, useState} from 'react';
+import {Container} from "react-bootstrap";
 import 'office-ui-fabric-react/dist/css/fabric.css';
 import {Label, TextField} from "office-ui-fabric-react";
 import Dialog from '@material-ui/core/Dialog';
@@ -10,10 +8,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import {useTheme} from '@material-ui/core/styles';
-import {DefaultButton, CommandBarButton} from "@fluentui/react";
-import ExamDb from "../../../../DBManager/db/ExamDb";
-import {useHistory} from 'react-router-dom';
-import {trackPromise} from 'react-promise-tracker';
+import {CommandBarButton, DefaultButton} from "@fluentui/react";
 
 const EditExam = (props) => {
     const [title, setTitle] = useState('');
@@ -24,28 +19,8 @@ const EditExam = (props) => {
     const [status] = useState(0); //setStatus
     const [open, setOpen] = React.useState(false);
     const theme = useTheme();
-    const history = useHistory();
     const fullScreen = useMediaQuery(theme.breakpoints.down('md'));
 
-    const handleEditExam = () => {
-        const data = {
-            id: id,
-            title: title,
-            description: description,
-            duration: parseInt(duration),
-            status: status,
-            imageUrl: !!imageUrl ? imageUrl : ''
-        };
-        trackPromise(ExamDb.updateExam(data)).then(response => {
-            history.push({
-                pathname: 'tutor_exams'
-            });
-            props.onExamEdited();
-            handleReset();
-        }).catch(e => {
-            setOpen(false);
-        })
-    }
 
     const handleReset = () => {
         setId('');
@@ -116,7 +91,17 @@ const EditExam = (props) => {
                 </Container>
             </DialogContent>
             <DialogActions>
-                <DefaultButton text="Submit" iconProps={{iconName: 'Save'}} onClick={handleEditExam}/>
+                <DefaultButton text="Submit" iconProps={{iconName: 'Save'}} onClick={() => {
+                    props.handleEditExam({
+                        id: id,
+                        title: title,
+                        description: description,
+                        duration: parseInt(duration),
+                        status: status,
+                        imageUrl: !!imageUrl ? imageUrl : ''
+                    });
+                    handleReset();
+                }}/>
                 <DefaultButton text="Close" iconProps={{iconName: 'Cancel'}} onClick={props.onClose}/>
                 <CommandBarButton width='5px'/>
             </DialogActions>
