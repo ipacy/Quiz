@@ -23,7 +23,7 @@ export async function getQuestionsByExam(examId) {
  * Add questions
  */
 export async function addQuestion(question, examId) {
-    const questions = await APIManager.callServer("POST", `/v1/api/Question?examId=${examId}`, question);
+    await APIManager.callServer("POST", `/v1/api/Question?examId=${examId}`, question);
     await getQuestionsByExam(examId);
     QuestionDispatcher.dispatch({
         actionTypes: actionTypes.ADD_QUESTION,
