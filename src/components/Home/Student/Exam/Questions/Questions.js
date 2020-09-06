@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {Container} from "react-bootstrap";
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
     AppBar,
     Button,
+    Container,
+    CssBaseline,
     Drawer,
     Paper,
     Table,
@@ -13,10 +14,8 @@ import {
     Toolbar,
     Typography
 } from '@material-ui/core';
-import Banner from "../../../../Navigation/Toolbar/Banner";
 import {makeStyles} from "@material-ui/core/styles";
 import {useHistory} from "react-router-dom";
-import Hidden from "@material-ui/core/Hidden";
 import QuestionList from "./QuestionList";
 import {Checkbox, DefaultButton, Label} from "office-ui-fabric-react";
 import QuillEditor from "../../../../Utils/QuillEditor";
@@ -24,18 +23,20 @@ import './Questions.css';
 import {DoneAll, DoneOutline, SkipNext} from "@material-ui/icons";
 import MessageToast from "../../../../Utils/MessageToast";
 import {trackPromise} from 'react-promise-tracker';
-import Aux from "../../../../../hoc/_Aux/_Aux";
 import {getOptionByQuestion, getQuestionsByExam} from "../../../../../stores/actions/QuestionActions";
 import QuestionStore from "../../../../../stores/store/QuestionStore";
-import {updateUserExamStatus, submitUserAnswer} from "../../../../../stores/actions/UserExamActions";
+import {submitUserAnswer, updateUserExamStatus} from "../../../../../stores/actions/UserExamActions";
+import clsx from 'clsx';
+import Countdown from 'react-countdown';
+import ExitToAppIcon from '@material-ui/icons/ExitToApp';
+
 
 const useStyles = makeStyles((theme) => ({
     root: {
-        width: '100%',
+        display: 'flex',
     },
     rootDummy: {
         display: 'flex',
-        marginLeft: '25rem',
         flexWrap: 'wrap',
         '& > *': {
             width: '44rem',
@@ -49,13 +50,14 @@ const useStyles = makeStyles((theme) => ({
     table: {
         minWidth: 200,
     },
-    drawerPaper: {
-        width: 350,
-    },
     content: {
         flexGrow: 1,
-        marginTop: '2rem',
-        marginLeft: '15rem'
+        height: '100vh',
+        overflow: 'auto',
+    },
+    container: {
+        paddingTop: theme.spacing(4),
+        paddingBottom: theme.spacing(4),
     },
     items: {
         marginBottom: '1px solid transparent'
@@ -69,12 +71,29 @@ const useStyles = makeStyles((theme) => ({
         marginRight: theme.spacing(2),
     },
     title: {
-        flexGrow: 1,
+        // flexGrow: 1,
     },
     bar: {
-        backgroundColor: '#003678'
-    }
-
+        backgroundColor: '#003678',
+        position: 'fixed',
+        bottom: '0',
+        left: '0'
+    },
+    appbar: {
+        zIndex: theme.zIndex.drawer + 1,
+        backgroundColor: '#003678',
+    },
+    drawerPaper: {
+        position: 'unset',
+        whiteSpace: 'nowrap',
+        width: 240
+    },
+    appBarShift: {
+        marginLeft: 240,
+        width: `calc(100% - ${240}px)`,
+        backgroundColor: '#003678',
+    },
+    appBarSpacer: theme.mixins.toolbar,
 }));
 
 /**
@@ -85,28 +104,38 @@ const useStyles = makeStyles((theme) => ({
 const Questions = (props) => {
     const [questionList, setQuestionList] = useState(QuestionStore.getQuestionsByExam());
     const [questionItem, setQuestionItem] = useState({});
-    const [mobileOpen, setMobileOpen] = useState(false);
     const [messageComponent, setMessageComponent] = useState(false);
     const [messageToast, SetMessageToast] = useState({open: false, title: ''});
     const classes = useStyles();
     const history = useHistory();
     const sId = props.match.params.id;
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
-
+    const [open] = React.useState(true);
+    const [examTitle, setExamTitle] = useState('');
 
     const onChange = useCallback(() => {
         const questions = QuestionStore.getQuestionsByExam();
+        if (questions.length > 0) {
+            setExamTitle(questions[0].exam);
+        }
         setQuestionList(questions.length > 0 ? questions : []);
     }, []);
 
     useEffect(() => {
         trackPromise(getQuestionsByExam(sId)).then();
         QuestionStore.addChangeListener(onChange);
-        return () => QuestionStore.removeChangeListener(onChange);
+        showToolbar(false);
+        return () => {
+            showToolbar(true);
+            QuestionStore.removeChangeListener(onChange);
+        }
     }, [onChange, sId]);
 
+    const showToolbar = (flag) => {
+        const hide = !!flag ? '' : 'none';
+        document.getElementById('mainExamHeader').style.display = hide;
+        document.getElementById('vBanner').style.display = hide;
+        document.getElementById('extraHeader').style.display = hide;
+    }
 
     const handleQuestionsByExam = (value, ind) => {
         const newValue = {...value};
@@ -117,7 +146,7 @@ const Questions = (props) => {
 
     const handleNext = async (index) => {
         let newList = {...questionList};
-        const eId = props.match.params.eId;
+        const eId = props.match.params['eId'];
         let options = [];
         questionItem.options.forEach((item) => {
             if (item.isCorrect) {
@@ -131,7 +160,6 @@ const Questions = (props) => {
             await trackPromise(submitUserAnswer(options)).then(
                 (responseData) => {
                     if (responseData.data && questionList.length !== index) {
-                        debugger;
                         newList[index]['index'] = index + 1;
                         handleOptionsByQuestion(newList[index]);
                     }
@@ -143,7 +171,6 @@ const Questions = (props) => {
 
     const handleOptionsByQuestion = (newValue) => {
         const eId = props.match.params.eId;
-        //await trackPromise(getOptionByQuestion(newValue['questionId'], eId));
         trackPromise(getOptionByQuestion(newValue['questionId'], eId)).then((responseData) => {
             if (responseData.data) {
                 newValue['options'] = responseData.data;
@@ -199,84 +226,97 @@ const Questions = (props) => {
             </TableRow>
         }
     ) : null;
-//{/*{timerComponents.length ? timerComponents : <span>Time's up!</span>}*/}
-    const individualItem = !!questionItem.title ? <Container>
-        <Paper>
-            <div>
-                <Label
-                    className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}</Label>
-                <TableContainer>
-                    <Table
-                        className={classes.table}
-                        aria-labelledby="tableTitle"
-                        size='small'
-                        aria-label="enhanced table">
-                        <TableBody>
-                            {tableItems}
-                        </TableBody>
-                    </Table>
-                </TableContainer>
-                <AppBar position="static" className={classes.bar}>
-                    <Toolbar>
-                        <Button color="inherit" edge="start" endIcon={<DoneAll/>} onClick={handleFinishExam}
-                                className={classes.menuButton}>Finish</Button>
-                        <Typography variant="h6" className={classes.title}/>
-                        {/* {(questionItem.index > 1) ?
-                                                <Button startIcon={<SkipPrevious/>} color="inherit"
-                                                        onClick={(i) => {
-                                                            handlePrevious(questionItem.index)
-                                                        }}>Previous</Button> : null}*/}
-                        {(questionList.length !== questionItem.index) ?
-                            <Button endIcon={<SkipNext/>} color="inherit"
-                                    onClick={(i) => {
-                                        handleNext(questionItem.index)
-                                    }}>Submit & Next</Button> : null}
-                        {(questionList.length === questionItem.index) ?
-                            <Button endIcon={<DoneOutline/>} color="inherit"
-                                    onClick={(i) => {
-                                        handleNext(questionItem.index);
-                                        handleFinishExam();
-                                    }}>Submit</Button> : null}
-                    </Toolbar>
-                </AppBar>
-            </div>
-        </Paper>
-    </Container> : null
-    return (
-        <Aux className={classes.root}>
-            <MessageToast open={messageToast.open} message={messageToast.title}/>
 
-            <nav className={classes.drawer} aria-label="mailbox folders">
-                <Hidden xsDown implementation="css">
-                    <Drawer
-                        // container={container}
-                        variant="permanent"
-                        anchor={'left'}
-                        open={mobileOpen}
-                        onClose={handleDrawerToggle}
-                        classes={{
-                            paper: classes.drawerPaper,
-                        }}
-                        ModalProps={{
-                            keepMounted: true,
-                        }}>
-                        <Banner/>
-                        <QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
-                    </Drawer>
-                </Hidden>
-                {!messageComponent
-                    ? <main className={classes.content}>{individualItem} </main>
-                    : <main className={classes.content}>
-                        <div className={classes.rootDummy}>
-                            <Paper elevation={3} style={{textAlign: 'center'}}>
-                                <Label>You cannot answer this question anymore</Label>
-                                <DefaultButton text={'Finish Exam'} onClick={handleFinishExam}/>
-                            </Paper>
-                        </div>
-                    </main>}
-            </nav>
-        </Aux>
-    )
+    const individualItem = !!questionItem.title ?
+        <Paper>
+            <Label
+                className={classes.question}>{`${questionItem.index}. ${questionItem.title}`}</Label>
+            <TableContainer>
+                <Table
+                    className={classes.table}
+                    aria-labelledby="tableTitle"
+                    size='small'
+                    aria-label="enhanced table">
+                    <TableBody>
+                        {tableItems}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+            <AppBar position="static" className={classes.bar}>
+                <Toolbar variant="dense">
+                    <Button color="inherit" edge="start" endIcon={<DoneAll/>} onClick={handleFinishExam}
+                            className={classes.menuButton}>Finish</Button>
+                    <Typography variant="h6" className={classes.title}/>
+                    {(questionList.length !== questionItem.index) ?
+                        <Button endIcon={<SkipNext/>} color="inherit"
+                                onClick={async (i) => {
+                                    await handleNext(questionItem.index)
+                                }}>Submit & Next</Button> : null}
+                    {(questionList.length === questionItem.index) ?
+                        <Button endIcon={<DoneOutline/>} color="inherit"
+                                onClick={async (i) => {
+                                    await handleNext(questionItem.index);
+                                    await handleFinishExam();
+                                }}>Submit</Button> : null}
+                </Toolbar>
+            </AppBar>
+        </Paper> : <Paper>
+            <Typography variant='h1' style={{textAlign: 'Center'}}>{examTitle} Exam</Typography>
+        </Paper>
+
+
+    const CompletionList = () => <span>Exam Over</span>;
+    const renderer = ({hours, minutes, seconds, completed}) => {
+        if (completed) {
+            // Render a completed state
+            return <CompletionList/>;
+        } else {
+            // Render a countdown
+            return <span>Time Left : Hours:{hours} Minutes:{minutes} Seconds:{seconds}</span>;
+        }
+    };
+    const countDownTimer = useMemo(() => {
+        return <Countdown date={Date.now() + 10000} renderer={renderer}/>
+    }, []);
+    return (
+        <div className={classes.root}>
+            <CssBaseline/>
+            <AppBar position="fixed" className={clsx(classes.appBar, open && classes.appBarShift)}>
+                <Toolbar>
+                    <Typography variant="h6" align='center' className={classes.title}/>
+                    <Typography variant='h6' style={{flexGrow: "1"}}>
+                        {countDownTimer}
+                    </Typography>
+                    <Button color='primary' onClick={() => {
+                        history.push('/student_exams');
+                    }}
+                            style={{backgroundColor: '#003678', color: 'white'}}
+                            endIcon={<ExitToAppIcon/>}>Leave</Button>
+                </Toolbar>
+            </AppBar>
+            <Drawer
+                variant="permanent"
+                classes={{paper: clsx(classes.drawerPaper)}}
+                open={open}>
+                <QuestionList questionList={questionList} handleQuestionsByExam={handleQuestionsByExam}/>
+            </Drawer>
+            <main className={classes.content}>
+                <MessageToast open={messageToast.open} message={messageToast.title}/>
+                <div className={classes.appBarSpacer}/>
+                <Container maxWidth="lg" className={classes.container}>
+                    {!messageComponent
+                        ? <main className={classes.content}>{individualItem} </main>
+                        : <main className={classes.content}>
+                            <div className={classes.rootDummy}>
+                                <Paper elevation={3} style={{textAlign: 'center'}}>
+                                    <Label>You cannot answer this question anymore</Label>
+                                    <DefaultButton text={'Finish Exam'} onClick={handleFinishExam}/>
+                                </Paper>
+                            </div>
+                        </main>}
+                </Container>
+            </main>
+        </div>)
 };
 
 

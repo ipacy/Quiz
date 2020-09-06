@@ -23,7 +23,7 @@ export async function getQuestionsByExam(examId) {
  * Add questions
  */
 export async function addQuestion(question, examId) {
-    await APIManager.callServer("POST", `/v1/api/Question?examId=${examId}`, question);
+    await APIManager.callServer("POST", `/v1/api/Question/AddQuestion?examId=${examId}`, question);
     await getQuestionsByExam(examId);
     QuestionDispatcher.dispatch({
         actionTypes: actionTypes.ADD_QUESTION,
@@ -36,11 +36,19 @@ export async function addQuestion(question, examId) {
  * @function
  * Get Questions by Id
  */
-export async function getQuestionsById(examId) {
-    const questions = await APIManager.callServer("GET", `/v1/api/Question/GetQuestionsById?examId=${examId}`);
+export async function getQuestionById(examId) {
+    let data = [], error = null;
+    await APIManager.callServer("GET", `/v1/api/Question/GetQuestionById?examId=${examId}`).then(response => {
+        data = response['data'];
+        error = null;
+    }).catch(e => {
+        data = [];
+        error = e['status'];
+    });
     QuestionDispatcher.dispatch({
         actionTypes: actionTypes.GET_QUESTION_BY_ID,
-        questionItem: questions['data']
+        questionItem: data,
+        error: error,
     });
 }
 
@@ -51,7 +59,7 @@ export async function getQuestionsById(examId) {
  * Get Questions by Id
  */
 export async function deleteQuestion(sId, examId) {
-    const questions = await APIManager.callServer("DELETE", `/v1/api/Question?id=${sId}`);
+    const questions = await APIManager.callServer("DELETE", `/v1/api/Question/DeleteQuestion?id=${sId}`);
     await getQuestionsByExam(examId)
     QuestionDispatcher.dispatch({
         actionTypes: actionTypes.DELETE_QUESTION,
@@ -66,7 +74,7 @@ export async function deleteQuestion(sId, examId) {
  * Get Questions by Id
  */
 export async function updateQuestion(question, examId) {
-    const questions = await APIManager.callServer("PUT", `/v1/api/Question`, question);
+    const questions = await APIManager.callServer("PUT", `/v1/api/Question/UpdateQuestion`, question);
     await getQuestionsByExam(examId)
     QuestionDispatcher.dispatch({
         actionTypes: actionTypes.UPDATE_QUESTION,
@@ -90,5 +98,14 @@ export async function getOptionByQuestion(questionId, userExamId) {
  * Get Questions by Id
  */
 export async function updateOption(question) {
-    return await APIManager.callServer("PUT", `/v1/api/Option`, question);
+    return await APIManager.callServer("PUT", `/v1/api/Option/UpdateOption`, question);
+}
+
+
+export async function getAllQuestions() {
+    const questions = await APIManager.callServer("GET", '/v1/api/Question/GetAllQuestions');
+    QuestionDispatcher.dispatch({
+        actionTypes: actionTypes.GET_ALL_QUESTION,
+        allQuestions: questions['data']
+    });
 }

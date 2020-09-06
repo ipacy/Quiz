@@ -22,6 +22,8 @@ let newQuestionItem = {
 let _messages = [];
 let _questions = [];
 let _questionItem = {...newQuestionItem};
+let _allQuestions = [];
+let _error = null;
 
 class QuestionStore extends EventEmitter {
     addChangeListener(callback) {
@@ -52,6 +54,14 @@ class QuestionStore extends EventEmitter {
         return _questionItem;
     }
 
+    getAllQuestions() {
+        return _allQuestions;
+    }
+
+    getError(){
+        return _error;
+    }
+
 }
 
 const questionStore = new QuestionStore();
@@ -61,14 +71,17 @@ AppDispatcher.register((action) => {
         case actionTypes.GET_QUESTIONS_BY_EXAM:
             _questions = action.questions;
             _messages = [];
+            _questionItem = {...newQuestionItem};
             questionStore.emitChange();
             break;
         case actionTypes.ADD_QUESTION:
             _messages = action.messages;
+            _questionItem = {...newQuestionItem};
             questionStore.emitChange();
             break;
         case actionTypes.GET_QUESTION_BY_ID:
             _questionItem = action.questionItem;
+            _error = action.error;
             questionStore.emitChange();
             break;
         case actionTypes.DELETE_QUESTION:
@@ -78,6 +91,13 @@ AppDispatcher.register((action) => {
             break;
         case actionTypes.UPDATE_QUESTION:
             _messages = action.messages;
+            _questionItem = {...newQuestionItem};
+            questionStore.emitChange();
+            break;
+        case actionTypes.GET_ALL_QUESTION:
+            _messages = action.messages;
+            _questionItem = {...newQuestionItem};
+            _allQuestions = action.allQuestions;
             questionStore.emitChange();
             break;
         default:

@@ -8,9 +8,18 @@ import APIManager from "../APIManager";
  * Get Dashboard
  */
 export async function getDashBoard() {
-    const dashboard = await APIManager.callServer("GET", "/v1/api/Global/GetDashboard");
-    QuestionDispatcher.dispatch({
-        actionTypes: actionTypes.GET_DASHBOARD,
-        data: dashboard['data']
+    //const dashboard = await APIManager.callServer("GET", "/v1/api/Global/GetDashboard");
+    APIManager.callServer("GET", "/v1/api/Global/GetDashboard").then((response) => {
+        QuestionDispatcher.dispatch({
+            actionTypes: actionTypes.GET_DASHBOARD,
+            data: response['data'],
+            error: null
+        });
+    }).catch(e => {
+        QuestionDispatcher.dispatch({
+            actionTypes: actionTypes.GET_DASHBOARD,
+            error: e['status'],
+            data: []
+        });
     });
 }

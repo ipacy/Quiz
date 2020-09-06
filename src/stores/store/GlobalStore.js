@@ -7,6 +7,8 @@ let _data = {
     "allExams": 0,
     "questions": 0
 };
+let error = null;
+
 
 class GlobalStore extends EventEmitter {
     addChangeListener(callback) {
@@ -24,6 +26,10 @@ class GlobalStore extends EventEmitter {
     getDashBoard() {
         return _data;
     }
+
+    getErrorMessage(){
+        return error;
+    }
 }
 
 const globalStore = new GlobalStore();
@@ -32,6 +38,7 @@ AppDispatcher.register((action) => {
     switch (action.actionTypes) {
         case actionTypes.GET_DASHBOARD:
             _data = action.data;
+            error = action.error;
             globalStore.emitChange();
             break;
         default:

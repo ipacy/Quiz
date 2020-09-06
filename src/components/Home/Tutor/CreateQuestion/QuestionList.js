@@ -8,7 +8,6 @@ import {
     ListItemSecondaryAction,
     ListItemText
 } from "@material-ui/core";
-import HelpOutlineIcon from "@material-ui/icons/HelpOutline";
 import DeleteIcon from "@material-ui/icons/Delete";
 import Aux from "../../../../hoc/_Aux/_Aux";
 
@@ -27,7 +26,7 @@ const QuestionList = React.memo(props => {
                                       key={(!!value && !!value.questionId) ? value.questionId : i}>
                                 <ListItemAvatar>
                                     <Avatar>
-                                        <HelpOutlineIcon/>
+                                       {i+1}
                                     </Avatar>
                                 </ListItemAvatar>
                                 <ListItemText

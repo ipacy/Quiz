@@ -31,15 +31,23 @@ class APIManagerClass {
             }
             //const oUrl = 'http://localhost:8000';
             const oUrl = 'https://localhost:44371';
-            fetch(`${oUrl}${path}`, fetchData)
-                .then(res => res.json())
-                .then(function (oResponse) {
-                    fnResolve(oResponse);
-                })
-                .catch(function (err) {
-                    fnReject(err);
-                });
-
+            try {
+                fetch(`${oUrl}${path}`, fetchData)
+                    .then(res => {
+                        if (res.status === 403 || res.status === 401) {
+                           return fnReject(res);
+                        }
+                        return res.json();
+                    })
+                    .then(function (oResponse) {
+                        fnResolve(oResponse);
+                    })
+                    .catch(function (err) {
+                        fnReject(err);
+                    });
+            } catch (e) {
+                fnReject(e);
+            }
         });
 
 

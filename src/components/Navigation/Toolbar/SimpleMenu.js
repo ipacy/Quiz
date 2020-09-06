@@ -1,21 +1,31 @@
 import React from "react";
-import {
-    Menu,
-    MenuItem,
-    Avatar,
-    Typography
-} from "@material-ui/core"; //   Chip
+import {Avatar, Box, Menu, MenuItem, Typography} from "@material-ui/core";
 import {useHistory} from "react-router-dom";
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
-// import Img from '../../../assets/online-learning.png';
-import AccountBoxIcon from '@material-ui/icons/AccountBox';
-import DP from '../../../assets/dp.jpg';
+import Img from '../../../assets/online-learning.png';
+import Ad from '../../../assets/admin.jpg';
+import {makeStyles} from "@material-ui/core/styles";
+import './SimpleMenu.css';
 
+
+const useStyles = makeStyles((theme) => ({
+    typo: {
+        marginTop: '0.3rem',
+        marginRight: '10px',
+        color: '#003678'
+    },
+    avatar: {
+        marginRight: '10px',
+        marginLeft: '10px',
+        border: '1px solid #8e908c59'
+    }
+}));
 const SimpleMenu = (props) => {
     const [anchorEl, setAnchorEl] = React.useState(null);
     const history = useHistory();
+    const classes = useStyles();
 
-    function handleClick(event) {
+    const handleClick = (event) => {
         if (anchorEl !== event.currentTarget) {
             setAnchorEl(event.currentTarget);
         }
@@ -33,13 +43,12 @@ const SimpleMenu = (props) => {
 
     return (
         <div className={'row'}>
-            {/*<Chip style={{marginRight:'1rem'}}
-                avatar={<Avatar onMouseOver={handleClick} alt="Remy Sharp" src={Img}/>}
-                onMouseOver={handleClick}
-                label={props.name}
-                variant="outlined"
-            />*/}
-            <Avatar onMouseOver={handleClick} alt="Remy Sharp" src={DP} style={{marginRight:'1rem'}}/>
+            <Box className='row menuBox' onMouseOver={handleClick}>
+                <Avatar alt="Remy Sharp" src={props.isAdmin ? Ad : Img}
+                        className={classes.avatar}/>
+                <Typography className={classes.typo} variant="h5"
+                            component="h2">{props.name}</Typography>
+            </Box>
             <Menu
                 anchorOrigin={{vertical: "bottom", horizontal: "center"}}
                 transformOrigin={{vertical: "bottom", horizontal: "center"}}
@@ -50,13 +59,6 @@ const SimpleMenu = (props) => {
                 MenuListProps={{onMouseLeave: handleClose}}
                 getContentAnchorEl={null}
             >
-                <MenuItem>
-                    <Typography variant="inherit">{props.name}</Typography>
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                    <AccountBoxIcon/>
-                    <Typography variant="inherit">Profile</Typography>
-                </MenuItem>
                 <MenuItem onClick={handleLogout}>
                     <ExitToAppIcon/>
                     <Typography variant="inherit">Logout</Typography>
